@@ -24,12 +24,7 @@ ams_math
 ; R5 index counter
 ; S0 holds progress of RMS
 	CBNZ R2, fn			; Check if length is 0
-	MOV R0, #0			; Store only 0's in output
-	STR R0, [R1, #1]!
-	STR R0, [R1, #1]!
-	STR R0, [R1, #1]!
-	STR R0, [R1, #1]!
-	STR R0, [R1, #1]!
+	MOV R0, #-1			; Store only 0's in output
 	B END
 fn		MOV R5, #0				; loop counter
 		MOV R3, R5				; initialize min index to 0
