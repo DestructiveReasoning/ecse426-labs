@@ -25,7 +25,7 @@ ams_math
 ; S0 holds progress of RMS
 	CBNZ R2, fn			; Check if length is 0
 	MOV R0, #-1			; Store only 0's in output
-	B END
+	B f_asm_math
 fn		MOV R5, #0				; loop counter
 		MOV R3, R5				; initialize min index to 0
 		MOV R4, R5				; initialize max index to 0
@@ -71,5 +71,6 @@ calc	LSR R2, #2				; restore R2 to original value by dividing by 4
 		VMOV S0, R3				; move min index to S0
 		VCVT.F32.U32 S0, S0		; tell S0 to interpret data as integer
 		VSTR.32 S0, [R1, #16]	; store min index in fifth cell of output
+f_asm_math NOP
 		
 END
