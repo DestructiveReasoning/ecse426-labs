@@ -21,6 +21,8 @@ int main()
 	float input[] = {1.0,2.0,3.0,4.0,5.0,6.0};
 	float output[5];
 	
+	printf("ams_math(_,_,0) = %d\n", ams_math(input,output,0));
+	
 	ams_math(input, output, 6);
 	printf("RMS: %f\nMax value: %f\nMin value: %f\nMax index: %f\nMin index: %f\n", output[0], output[1], output[2], output[3], output[4]);
 	c_math(input, output, 6);

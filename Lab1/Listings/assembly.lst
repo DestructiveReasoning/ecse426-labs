@@ -33,7 +33,7 @@ ARM Macro Assembler    Page 1
                                                             s 0
    27 00000006 F04F 30FF       MOV              R0, #-1     ; Store only 0's in
                                                              output
-   28 0000000A E04E            B                f_asm_math
+   28 0000000A 4770            BX               r14
    29 0000000C F04F 0500 
                        fn      MOV              R5, #0      ; loop counter
    30 00000010 462B            MOV              R3, R5      ; initialize min in
@@ -153,8 +153,7 @@ ARM Macro Assembler    Page 3
    73 000000A6 ED81 0A04       VSTR.32          S0, [R1, #16] ; store min index
                                                              in fifth cell of o
                                                             utput
-   74 000000AA BF00    f_asm_math
-                               NOP
+   74 000000AA 4770            BX               r14
    75 000000AC         
    76 000000AC         END
                        
@@ -202,14 +201,6 @@ Symbol: calc
    Uses
       At line 36 in file Assembly.s
 Comment: calc used once
-f_asm_math 000000AA
-
-Symbol: f_asm_math
-   Definitions
-      At line 74 in file Assembly.s
-   Uses
-      At line 28 in file Assembly.s
-Comment: f_asm_math used once
 fn 0000000C
 
 Symbol: fn
@@ -230,12 +221,6 @@ Symbol: loop
 
 max 00000052
 
-
-
-ARM Macro Assembler    Page 2 Alphabetic symbol ordering
-Relocatable symbols
-
-
 Symbol: max
    Definitions
       At line 50 in file Assembly.s
@@ -243,6 +228,12 @@ Symbol: max
       None
 Comment: max unused
 min 00000056
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Relocatable symbols
+
 
 Symbol: min
    Definitions
@@ -266,5 +257,5 @@ Symbol: text
    Uses
       None
 Comment: text unused
-11 symbols
-346 symbols in table
+10 symbols
+345 symbols in table
