@@ -23,139 +23,143 @@ ARM Macro Assembler    Page 1
    17 00000004         
    18 00000004         ams_math
    19 00000004         ; R0 holds input pointer
-   20 00000004         ; R1 holds output pointer
+   20 00000004         ; R1 holds loop counter and output pointer
    21 00000004         ; R2 holds input length
    22 00000004         ; R3 holds current min index
    23 00000004         ; R4 holds current max index
-   24 00000004         ; R5 index counter
-   25 00000004         ; S0 holds progress of RMS
-   26 00000004 B912            CBNZ             R2, fn      ; Check if length i
+   24 00000004         ; S0 holds progress of RMS
+   25 00000004         ; S1 holds current array item
+   26 00000004         ; S2 holds current min
+   27 00000004         ; S3 holds current max
+   28 00000004 B912            CBNZ             R2, fn      ; Check if length i
                                                             s 0
-   27 00000006 F04F 30FF       MOV              R0, #-1     ; Store only 0's in
+   29 00000006 F04F 30FF       MOV              R0, #-1     ; Store only 0's in
                                                              output
-   28 0000000A 4770            BX               r14
-   29 0000000C F04F 0500 
-                       fn      MOV              R5, #0      ; loop counter
-   30 00000010 462B            MOV              R3, R5      ; initialize min in
+   30 0000000A 4770            BX               r14
+   31 0000000C F84D 4C04 
+                       fn      STR              R4, [SP, #-4] 
+                                                            ; preserve R4 value
+                                                            
+   32 00000010 F84D 1C08       STR              R1, [SP, #-8] ; preserve output
+                                                             pointer
+   33 00000014 F04F 0100       MOV              R1, #0      ; loop counter
+   34 00000018 460B            MOV              R3, R1      ; initialize min in
                                                             dex to 0
-   31 00000012 462C            MOV              R4, R5      ; initialize max in
+   35 0000001A 460C            MOV              R4, R1      ; initialize max in
                                                             dex to 0
-   32 00000014 EA4F 0282       LSL              R2, #2      ; multiply length b
+   36 0000001C EDD0 0A00       VLDR.32          S1, [R0]    ; current item
+   37 00000020 EEB0 1A60       VMOV.F32         S2, S1      ; current min and m
+                                                            ax default to first
+                                                             value
+   38 00000024 EEF0 1A60       VMOV.F32         S3, S1
+   39 00000028 EA4F 0282       LSL              R2, #2      ; multiply length b
                                                             y 4 for alignment
-   33 00000018 E001            B                start       ; skip loop label, 
+   40 0000002C E001            B                start       ; skip loop label, 
                                                             don't increment cou
                                                             nter before first i
                                                             teration
-   34 0000001A F105 0504 
-                       loop    ADD              R5, R5, #4  ; increment counter
+   41 0000002E F101 0104 
+                       loop    ADD              R1, R1, #4  ; increment counter
                                                              before the next it
                                                             eration
-   35 0000001E 4295    start   CMP              R5, R2      ; check if final it
-                                                            eration has complet
-                                                            ed
-   36 00000020 D01B            BEQ              calc
-   37 00000022 EB00 0605       ADD              R6, R0, R5  ; calculate address
-                                                             of next item for V
-                                                            LDR
-   38 00000026 ED96 1A00       VLDR.32          S2, [R6]    ; next item goes in
-                                                             S2
-   39 0000002A EEA1 0A01       VFMA.F32         S0, S2, S2  ; increment S0 by (
-                                                            next item)^2
-   40 0000002E EB00 0603       ADD              R6, R0, R3  ; calculate address
-                                                             of current min for
+   42 00000032 4291    start   CMP              R1, R2      ; check if final it
 
 
 
 ARM Macro Assembler    Page 2 
 
 
-                                                             VLDR
-   41 00000032 EDD6 0A00       VLDR.32          S1, [R6]    ; current min goes 
-                                                            in S1
-   42 00000036 EEB4 1A60       VCMP.F32         S2, S1      ; compare current i
+                                                            eration has complet
+                                                            ed
+   43 00000034 D018            BEQ              calc
+   44 00000036         ;ADD R6, R0, R1   ; calculate address of next item for V
+                       LDR
+   45 00000036 4408            ADD              R0, R0, R1
+   46 00000038 EDD0 0A00       VLDR.32          S1, [R0]    ; next item goes in
+                                                             S2
+   47 0000003C EBA0 0001       SUB              R0, R0, R1
+   48 00000040 EEA0 0AA0       VFMA.F32         S0, S1, S1  ; increment S0 by (
+                                                            next item)^2
+   49 00000044 EEF4 0A41       VCMP.F32         S1, S2      ; compare current i
                                                             tem to current min
-   43 0000003A EEF1 FA10       VMRS             APSR_nzcv, FPSCR ; send compari
+   50 00000048 EEF1 FA10       VMRS             APSR_nzcv, FPSCR ; send compari
                                                             son results to core
                                                             
-   44 0000003E DB0A            BLT              min         ; if new min is see
+   51 0000004C DB08            BLT              min         ; if new min is see
                                                             n, branch...
-   45 00000040 EB00 0604       ADD              R6, R0, R4  ; ... else calculat
-                                                            e address of curren
-                                                            t max for VLDR
-   46 00000044 EDD6 0A00       VLDR.32          S1, [R6]    ; current max goes 
-                                                            in S1
-   47 00000048 EEB4 1A60       VCMP.F32         S2, S1      ; compare current i
+   52 0000004E EEF4 0A61       VCMP.F32         S1, S3      ; compare current i
                                                             tem to current max
-   48 0000004C EEF1 FA10       VMRS             APSR_nzcv, FPSCR ; send compari
+   53 00000052 EEF1 FA10       VMRS             APSR_nzcv, FPSCR ; send compari
                                                             son results to core
                                                             
-   49 00000050 DBE3            BLT              loop        ; if not min or max
+   54 00000056 DBEA            BLT              loop        ; if not min or max
                                                             , go to next iterat
                                                             ion...
-   50 00000052 462C    max     MOV              R4, R5      ; ... else, it's a 
+   55 00000058 460C    max     MOV              R4, R1      ; ... else, it's a 
                                                             max, so put current
                                                              index in R4
-   51 00000054 E7E1            B                loop
-   52 00000056 462B    min     MOV              R3, R5      ; it's a min, put c
+   56 0000005A EEF0 1A60       VMOV.F32         S3, S1
+   57 0000005E E7E6            B                loop
+   58 00000060 460B    min     MOV              R3, R1      ; it's a min, put c
                                                             urrent index in R3
-   53 00000058 E7DF            B                loop
-   54 0000005A EA4F 0292 
+   59 00000062 EEB0 1A60       VMOV.F32         S2, S1
+   60 00000066 E7E2            B                loop
+   61 00000068 EA4F 0292 
                        calc    LSR              R2, #2      ; restore R2 to ori
                                                             ginal value by divi
                                                             ding by 4
-   55 0000005E EE00 2A90       VMOV             S1, R2      ; put length in flo
+   62 0000006C F85D 1C08       LDR              R1, [SP, #-8] ; restore output 
+                                                            pointer to R1
+   63 00000070 EE00 2A90       VMOV             S1, R2      ; put length in flo
                                                             ating point registe
                                                             r
-   56 00000062 EEF8 0A60       VCVT.F32.U32     S1, S1      ; tell S1 to interp
+   64 00000074 EEF8 0A60       VCVT.F32.U32     S1, S1      ; tell S1 to interp
                                                             ret data as int
-   57 00000066 EE80 0A20       VDIV.F32         S0, S0, S1  ; divide sum of squ
+   65 00000078 EE80 0A20       VDIV.F32         S0, S0, S1  ; divide sum of squ
                                                             ares by length (mea
                                                             n square)
-   58 0000006A EEB1 0AC0       VSQRT.F32        S0, S0      ; get RMS
-   59 0000006E ED81 0A00       VSTR.32          S0, [R1]    ; store RMS in firs
+   66 0000007C EEB1 0AC0       VSQRT.F32        S0, S0      ; get RMS
+   67 00000080 ED81 0A00       VSTR.32          S0, [R1]    ; store RMS in firs
                                                             t cell of output
-   60 00000072 EB00 0604       ADD              R6, R0, R4  ; calculate address
-                                                             of max value
-   61 00000076 ED96 0A00       VLDR.32          S0, [R6]
-   62 0000007A ED81 0A01       VSTR.32          S0, [R1, #4] ; store max value 
+   68 00000084 EDC1 1A01       VSTR.32          S3, [R1, #4] ; store max value 
                                                             in second cell of o
                                                             utput
-   63 0000007E EB00 0603       ADD              R6, R0, R3  ; calculate address
-                                                             of min value
-   64 00000082 ED96 0A00       VLDR.32          S0, [R6]
-   65 00000086 ED81 0A02       VSTR.32          S0, [R1, #8] ; store min value 
+   69 00000088 ED81 1A02       VSTR.32          S2, [R1, #8] ; store min value 
                                                             in third cell of ou
                                                             tput
-   66 0000008A EA4F 0494       LSR              R4, #2      ; convert max index
-                                                             to bytes
+   70 0000008C EA4F 0494       LSR              R4, #2      ; convert max index
 
 
 
 ARM Macro Assembler    Page 3 
 
 
-   67 0000008E EA4F 0393       LSR              R3, #2      ; convert min index
                                                              to bytes
-   68 00000092 EE00 4A10       VMOV             S0, R4      ; move max index to
+   71 00000090 EA4F 0393       LSR              R3, #2      ; convert min index
+                                                             to bytes
+   72 00000094 EE00 4A10       VMOV             S0, R4      ; move max index to
                                                              floating point reg
                                                             ister
-   69 00000096 EEB8 0A40       VCVT.F32.U32     S0, S0      ; tell S0 to interp
+   73 00000098 EEB8 0A40       VCVT.F32.U32     S0, S0      ; tell S0 to interp
                                                             ret data as integer
                                                             
-   70 0000009A ED81 0A03       VSTR.32          S0, [R1, #12] ; store max index
+   74 0000009C ED81 0A03       VSTR.32          S0, [R1, #12] ; store max index
                                                              in fourth cell of 
                                                             output
-   71 0000009E EE00 3A10       VMOV             S0, R3      ; move min index to
+   75 000000A0 EE00 3A10       VMOV             S0, R3      ; move min index to
                                                              S0
-   72 000000A2 EEB8 0A40       VCVT.F32.U32     S0, S0      ; tell S0 to interp
+   76 000000A4 EEB8 0A40       VCVT.F32.U32     S0, S0      ; tell S0 to interp
                                                             ret data as integer
                                                             
-   73 000000A6 ED81 0A04       VSTR.32          S0, [R1, #16] ; store min index
+   77 000000A8 ED81 0A04       VSTR.32          S0, [R1, #16] ; store min index
                                                              in fifth cell of o
                                                             utput
-   74 000000AA 4770            BX               r14
-   75 000000AC         
-   76 000000AC         END
+   78 000000AC F85D 4C04       LDR              R4, [SP, #-4] ; restore R4's va
+                                                            lue from previous c
+                                                            ontext
+   79 000000B0 4770            BX               r14
+   80 000000B2         
+   81 000000B2         END
                        
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --apcs=int
 erwork --depend=.\objects\assembly.d -o.\objects\assembly.o -I.\RTE\_Target_1 -
@@ -169,11 +173,11 @@ AL SETA 1" --predefine="__UVISION_VERSION SETA 524" --predefine="_RTE_ SETA 1"
 ARM Macro Assembler    Page 1 Alphabetic symbol ordering
 Relocatable symbols
 
-END 000000AC
+END 000000B2
 
 Symbol: END
    Definitions
-      At line 76 in file Assembly.s
+      At line 81 in file Assembly.s
    Uses
       None
 Comment: END unused
@@ -193,41 +197,41 @@ Symbol: ams_math
    Uses
       At line 3 in file Assembly.s
 Comment: ams_math used once
-calc 0000005A
+calc 00000068
 
 Symbol: calc
    Definitions
-      At line 54 in file Assembly.s
+      At line 61 in file Assembly.s
    Uses
-      At line 36 in file Assembly.s
+      At line 43 in file Assembly.s
 Comment: calc used once
 fn 0000000C
 
 Symbol: fn
    Definitions
-      At line 29 in file Assembly.s
+      At line 31 in file Assembly.s
    Uses
-      At line 26 in file Assembly.s
+      At line 28 in file Assembly.s
 Comment: fn used once
-loop 0000001A
+loop 0000002E
 
 Symbol: loop
    Definitions
-      At line 34 in file Assembly.s
+      At line 41 in file Assembly.s
    Uses
-      At line 49 in file Assembly.s
-      At line 51 in file Assembly.s
-      At line 53 in file Assembly.s
+      At line 54 in file Assembly.s
+      At line 57 in file Assembly.s
+      At line 60 in file Assembly.s
 
-max 00000052
+max 00000058
 
 Symbol: max
    Definitions
-      At line 50 in file Assembly.s
+      At line 55 in file Assembly.s
    Uses
       None
 Comment: max unused
-min 00000056
+min 00000060
 
 
 
@@ -237,17 +241,17 @@ Relocatable symbols
 
 Symbol: min
    Definitions
-      At line 52 in file Assembly.s
+      At line 58 in file Assembly.s
    Uses
-      At line 44 in file Assembly.s
+      At line 51 in file Assembly.s
 Comment: min used once
-start 0000001E
+start 00000032
 
 Symbol: start
    Definitions
-      At line 35 in file Assembly.s
+      At line 42 in file Assembly.s
    Uses
-      At line 33 in file Assembly.s
+      At line 40 in file Assembly.s
 Comment: start used once
 text 00000000
 

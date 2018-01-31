@@ -34,15 +34,17 @@ fn		STR R4, [SP, #-4]		; preserve R4 value
 		MOV R3, R1				; initialize min index to 0
 		MOV R4, R1				; initialize max index to 0
 		VLDR.32 S1, [R0]		; current item
-		VMOV S2, S1				; current min and max default to first value
-		VMOV S3, S1
+		VMOV.F32 S2, S1				; current min and max default to first value
+		VMOV.F32 S3, S1
 		LSL R2, #2				; multiply length by 4 for alignment
 		B start					; skip loop label, don't increment counter before first iteration
 loop	ADD R1, R1, #4			; increment counter before the next iteration
 start	CMP R1, R2				; check if final iteration has completed
 		BEQ calc
 		;ADD R6, R0, R1			; calculate address of next item for VLDR
-		VLDR.32 S1, [R0, R1]	; next item goes in S2
+		ADD R0, R0, R1
+		VLDR.32 S1, [R0]		; next item goes in S2
+		SUB R0, R0, R1
 		VFMA.F32 S0, S1, S1		; increment S0 by (next item)^2
 		VCMP.F32 S1, S2			; compare current item to current min
 		VMRS APSR_nzcv, FPSCR	; send comparison results to core
@@ -51,8 +53,10 @@ start	CMP R1, R2				; check if final iteration has completed
 		VMRS APSR_nzcv, FPSCR	; send comparison results to core
 		BLT loop				; if not min or max, go to next iteration...
 max		MOV R4, R1				; ... else, it's a max, so put current index in R4
+		VMOV.F32 S3, S1
 		B loop
 min		MOV R3, R1				; it's a min, put current index in R3
+		VMOV.F32 S2, S1
 		B loop
 calc	LSR R2, #2				; restore R2 to original value by dividing by 4
 		LDR R1, [SP, #-8]		; restore output pointer to R1
