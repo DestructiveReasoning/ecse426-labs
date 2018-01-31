@@ -33,15 +33,15 @@ fn		STR R4, [SP, #-4]		; preserve R4 value
 		MOV R1, #0				; loop counter
 		MOV R3, R1				; initialize min index to 0
 		MOV R4, R1				; initialize max index to 0
+		VMOV S0, R1				; initialize RMS to 0
 		VLDR.32 S1, [R0]		; current item
 		VMOV.F32 S2, S1				; current min and max default to first value
 		VMOV.F32 S3, S1
 		LSL R2, #2				; multiply length by 4 for alignment
-		B start					; skip loop label, don't increment counter before first iteration
+		VFMA.F32 S0, S1, S1
 loop	ADD R1, R1, #4			; increment counter before the next iteration
-start	CMP R1, R2				; check if final iteration has completed
+		CMP R1, R2				; check if final iteration has completed
 		BEQ calc
-		;ADD R6, R0, R1			; calculate address of next item for VLDR
 		ADD R0, R0, R1
 		VLDR.32 S1, [R0]		; next item goes in S2
 		SUB R0, R0, R1
