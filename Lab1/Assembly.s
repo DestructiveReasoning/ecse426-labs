@@ -28,8 +28,8 @@ ams_math
 	CBNZ R2, fn			; Check if length is 0
 	MOV R0, #-1			; Store only 0's in output
 	BX r14
-fn		STR R4, [SP, #-4]		; preserve R4 value
-		STR R1, [SP, #-8]		; preserve output pointer
+fn		PUSH {R4}				; preserve R4 value
+		PUSH {R1}				; preserve output pointer
 		MOV R1, #0				; loop counter
 		MOV R3, R1				; initialize min index to 0
 		MOV R4, R1				; initialize max index to 0
@@ -58,7 +58,7 @@ min		MOV R3, R1				; it's a min, put current index in R3
 		VMOV.F32 S2, S1
 		B loop
 calc	LSR R2, #2				; restore R2 to original value by dividing by 4
-		LDR R1, [SP, #-8]		; restore output pointer to R1
+		POP {R1}				; restore output pointer to R1
 		VMOV S1, R2				; put length in floating point register
 		VCVT.F32.U32 S1, S1		; tell S1 to interpret data as int
 		VDIV.F32 S0, S0, S1		; divide sum of squares by length (mean square)
@@ -74,7 +74,7 @@ calc	LSR R2, #2				; restore R2 to original value by dividing by 4
 		VMOV S0, R3				; move min index to S0
 		VCVT.F32.U32 S0, S0		; tell S0 to interpret data as integer
 		VSTR.32 S0, [R1, #16]	; store min index in fifth cell of output
-		LDR R4, [SP, #-4]		; restore R4's value from previous context
+		POP {R4}				; restore R4's value from previous context
 		BX r14
 		
 END
