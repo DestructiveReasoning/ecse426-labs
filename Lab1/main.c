@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <math.h>
 #include "arm_math.h"
+#include "stm32f407xx.h"
 
 int Example_asm(int Input);
 int asm_math(float *input, float *output, int length);
 int c_math(float *, float *, int);
+int cmsis_math(float32_t *input, float32_t *output, uint32_t length);
 
 void FIR_C(int, float *);
 
@@ -27,7 +29,9 @@ int main()
 	printf("RMS: %f\nMax value: %f\nMin value: %f\nMax index: %f\nMin index: %f\n", output[0], output[1], output[2], output[3], output[4]);
 	c_math(input, output, 6);
 	printf("RMS: %f\nMax value: %f\nMin value: %f\nMax index: %f\nMin index: %f\n", output[0], output[1], output[2], output[3], output[4]);
-
+	cmsis_math(input, output, 6);
+	printf("RMS: %f\nMax value: %f\nMin value: %f\nMax index: %f\nMin index: %f\n", output[0], output[1], output[2], output[3], output[4]);
+	
 	return 0;
 }
 
@@ -69,4 +73,26 @@ int c_math(float *input, float *output, int length) {
 	output[3] = (float)max_index;
 	output[4] = (float)min_index;
 	return 0;
+}
+
+int cmsis_math(float32_t *input, float32_t *output, uint32_t length) {
+	if (length == 0) {
+		return -1;
+	}
+	float32_t rms;
+	float32_t min_value;
+	float32_t max_value;
+	uint32_t min_index; 
+	uint32_t max_index;
+	
+	arm_rms_f32(input, length, &rms); // compute rms value of input
+	arm_min_f32(input, length, &min_value, &min_index); // compute min value, ouput result to min_value and index to min_index
+	arm_max_f32(input, length, &max_value, &max_index); // compute max value, ouput result to max_value and index to max_index
+	
+	output[0] = rms;
+	output[1] = max_value;
+	output[2] = min_value;
+	output[3] = max_index;
+	output[4] = min_index;
+	return 0; // no errors
 }
