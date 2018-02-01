@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <math.h>
+#include <stdlib.h>
 #include "arm_math.h"
 #include "stm32f407xx.h"
 
@@ -19,17 +20,25 @@ int main()
 	Example_asm(Input);
 
 	printf("The end!\n");
+	
+	int LENGTH = 7;
 
-	float input[] = {1.0,2.0,3.0,4.0,5.0,6.0};
+	int input[LENGTH];
+	int c;
+	for(c = 0; c < LENGTH; ++c) {
+		input[c] = (rand() % 100) - 50;
+	}
+	float filtered[LENGTH];
+	for(c = 0; c < LENGTH; ++c) {
+		FIR_C(input[c], filtered + c);
+	}
 	float output[5];
-	
-	printf("ams_math(_,_,0) = %d\n", ams_math(input,output,0));
-	
-	ams_math(input, output, 6);
+		
+	asm_math(filtered, output, 6);
 	printf("RMS: %f\nMax value: %f\nMin value: %f\nMax index: %f\nMin index: %f\n", output[0], output[1], output[2], output[3], output[4]);
-	c_math(input, output, 6);
+	c_math(filtered, output, 6);
 	printf("RMS: %f\nMax value: %f\nMin value: %f\nMax index: %f\nMin index: %f\n", output[0], output[1], output[2], output[3], output[4]);
-	cmsis_math(input, output, 6);
+	cmsis_math(filtered, output, 6);
 	printf("RMS: %f\nMax value: %f\nMin value: %f\nMax index: %f\nMin index: %f\n", output[0], output[1], output[2], output[3], output[4]);
 	
 	return 0;

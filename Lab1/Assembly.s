@@ -1,6 +1,6 @@
 	AREA text, CODE, READONLY
 	EXPORT Example_asm
-	EXPORT ams_math
+	EXPORT asm_math
 
 ; function Example_asm
 ; inputs:
@@ -15,7 +15,7 @@ Example_asm
 	
 ;END
 
-ams_math
+asm_math
 ; R0 holds input pointer
 ; R1 holds loop counter and output pointer
 ; R2 holds input length

@@ -6,7 +6,7 @@ ARM Macro Assembler    Page 1
 
     1 00000000                 AREA             text, CODE, READONLY
     2 00000000                 EXPORT           Example_asm
-    3 00000000                 EXPORT           ams_math
+    3 00000000                 EXPORT           asm_math
     4 00000000         
     5 00000000         ; function Example_asm
     6 00000000         ; inputs:
@@ -21,7 +21,7 @@ ARM Macro Assembler    Page 1
    15 00000004         
    16 00000004         ;END
    17 00000004         
-   18 00000004         ams_math
+   18 00000004         asm_math
    19 00000004         ; R0 holds input pointer
    20 00000004         ; R1 holds loop counter and output pointer
    21 00000004         ; R2 holds input length
@@ -183,14 +183,14 @@ Symbol: Example_asm
    Uses
       At line 2 in file Assembly.s
 Comment: Example_asm used once
-ams_math 00000004
+asm_math 00000004
 
-Symbol: ams_math
+Symbol: asm_math
    Definitions
       At line 18 in file Assembly.s
    Uses
       At line 3 in file Assembly.s
-Comment: ams_math used once
+Comment: asm_math used once
 calc 00000068
 
 Symbol: calc
