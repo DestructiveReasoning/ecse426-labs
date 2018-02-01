@@ -21,12 +21,13 @@ int main()
 
 	printf("The end!\n");
 	
-	int LENGTH = 7;
+	int LENGTH = 50;
+	int MAX_MAGNITUDE = 50;
 
 	int input[LENGTH];
 	int c;
 	for(c = 0; c < LENGTH; ++c) {
-		input[c] = (rand() % 100) - 50;
+		input[c] = (rand() % (2 * MAX_MAGNITUDE)) - MAX_MAGNITUDE;
 	}
 	float filtered[LENGTH];
 	for(c = 0; c < LENGTH; ++c) {
@@ -34,11 +35,11 @@ int main()
 	}
 	float output[5];
 		
-	asm_math(filtered, output, 6);
+	asm_math(filtered, output, LENGTH);
 	printf("RMS: %f\nMax value: %f\nMin value: %f\nMax index: %f\nMin index: %f\n", output[0], output[1], output[2], output[3], output[4]);
-	c_math(filtered, output, 6);
+	c_math(filtered, output, LENGTH);
 	printf("RMS: %f\nMax value: %f\nMin value: %f\nMax index: %f\nMin index: %f\n", output[0], output[1], output[2], output[3], output[4]);
-	cmsis_math(filtered, output, 6);
+	cmsis_math(filtered, output, LENGTH);
 	printf("RMS: %f\nMax value: %f\nMin value: %f\nMax index: %f\nMin index: %f\n", output[0], output[1], output[2], output[3], output[4]);
 	
 	return 0;
