@@ -46,28 +46,31 @@ int main()
 }
 
 void FIR_C(int Input, float *Output) {
-	float b[] = {0.1, 0.15, 0.5, 0.15, 0.1};
-	static int x[5];
-	static int count = 0;
+	float b[] = {0.1, 0.15, 0.5, 0.15, 0.1}; //coefficients
+	static int x[5]; //stores last 5 inputs
+	static int count = 0; //counts how many inputs have been seen
 	float out = 0.0;
-	int c;
-	int start = count % 5;
+	int c; //loop index
+	int start = count % 5; //index of newest input
 	x[(count++) % 5] = Input;
 	for(c = 0; c < count && c < 5; ++c) {
-		int pos = (5 + (start - c) % 5) % 5;
+		int pos = (5 + (start - c) % 5) % 5; //obtain non-negative position of cth newest item in array
 		out += x[pos] * b[c];
+	}
+	if(count == 10) {
+		count = 5; //avoid overflowing count
 	}
 	*Output = out;
 }
 
 int c_math(float *input, float *output, int length) {
 	if(length == 0) {
-		return -1;
+		return -1; //avoid dividing by 0
 	}
-	int c;
-	float rms = input[0] * input[0];
-	int min_index = 0;
-	int max_index = 0;
+	int c; //loop index
+	float32_t rms = input[0] * input[0];
+	uint32_t min_index = 0;
+	uint32_t max_index = 0;
 	for(c = 1; c < length; ++c) {
 		rms += input[c] * input[c];
 		if(input[c] < input[min_index]) {
@@ -80,9 +83,9 @@ int c_math(float *input, float *output, int length) {
 	output[0] = rms;
 	output[1] = input[max_index];
 	output[2] = input[min_index];
-	output[3] = (float)max_index;
+	output[3] = (float)max_index; //explicit cast to float because output is a float array
 	output[4] = (float)min_index;
-	return 0;
+	return 0; //no errors
 }
 
 int cmsis_math(float32_t *input, float32_t *output, uint32_t length) {
@@ -102,7 +105,7 @@ int cmsis_math(float32_t *input, float32_t *output, uint32_t length) {
 	output[0] = rms;
 	output[1] = max_value;
 	output[2] = min_value;
-	output[3] = max_index;
-	output[4] = min_index;
+	output[3] = (float) max_index; //explicit cast to float because output is a float array
+	output[4] = (float) min_index;
 	return 0; // no errors
 }
