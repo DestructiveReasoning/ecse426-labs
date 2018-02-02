@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include <time.h>
 #include "arm_math.h"
 #include "stm32f407xx.h"
 
@@ -13,7 +14,7 @@ void FIR_C(int, float *);
 
 int main()
 {
-	
+	srand(time(NULL));
 	int Input = 10;
 	printf("Begins Asm\n");
 	

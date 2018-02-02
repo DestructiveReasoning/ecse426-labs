@@ -2,6 +2,7 @@
 .\objects\main.o: C:\Keil_v5\ARM\ARMCC\bin\..\include\stdio.h
 .\objects\main.o: C:\Keil_v5\ARM\ARMCC\bin\..\include\math.h
 .\objects\main.o: C:\Keil_v5\ARM\ARMCC\bin\..\include\stdlib.h
+.\objects\main.o: C:\Keil_v5\ARM\ARMCC\bin\..\include\time.h
 .\objects\main.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.1\CMSIS\Include\arm_math.h
 .\objects\main.o: C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.1\CMSIS\Include\core_cm4.h
 .\objects\main.o: C:\Keil_v5\ARM\ARMCC\bin\..\include\stdint.h
