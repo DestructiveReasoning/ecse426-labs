@@ -1,5 +1,9 @@
 BINDIR=MDK-ARM/G19_LAB2
 GDBDIR=MDK-ARM
+KEIL_TOOLS=/home/harwiltz/.wine/drive_c/Keil_v5/ARM/ARMCC/bin
+
+compile:
+	wine $(KEIL_TOOLS)/fromelf.exe --bin $(BINDIR)/G19_LAB2.axf --output $(BINDIR)/G19_LAB2.bin
 
 flash:
 	st-flash write $(BINDIR)/G19_LAB2.bin 0x08000000
