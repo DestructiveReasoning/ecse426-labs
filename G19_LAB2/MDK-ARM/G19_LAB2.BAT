@@ -1,0 +1,31 @@
+SET PATH=C:\Keil_v5\ARM\ARMCC\Bin;C:\windows\system32;C:\windows;C:\windows\system32\wbem
+SET CPU_TYPE=STM32F407VGTx
+SET CPU_VENDOR=STMicroelectronics
+SET UV2_TARGET=G19_LAB2
+SET CPU_CLOCK=0x0A037A00
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "g19_lab2\stm32f4xx_it.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "g19_lab2\stm32f4xx_hal_msp.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "g19_lab2\main.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "g19_lab2\fput_debug.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "g19_lab2\system_stm32f4xx.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "g19_lab2\stm32f4xx_hal_adc_ex.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "g19_lab2\stm32f4xx_hal_adc.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "g19_lab2\stm32f4xx_hal_flash_ex.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "g19_lab2\stm32f4xx_hal_dac_ex.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "g19_lab2\stm32f4xx_hal_pwr.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "g19_lab2\stm32f4xx_hal_flash.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "g19_lab2\stm32f4xx_hal_dma.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "g19_lab2\stm32f4xx_hal_pwr_ex.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "g19_lab2\stm32f4xx_hal_cortex.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "g19_lab2\stm32f4xx_hal_flash_ramfunc.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "g19_lab2\stm32f4xx_hal_dma_ex.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "g19_lab2\stm32f4xx_hal_tim_ex.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "g19_lab2\stm32f4xx_hal_dac.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "g19_lab2\stm32f4xx_hal_tim.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "g19_lab2\stm32f4xx_hal_gpio.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "g19_lab2\stm32f4xx_hal_rcc.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "g19_lab2\stm32f4xx_hal_rcc_ex.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmCC" --Via "g19_lab2\stm32f4xx_hal.__i"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmAsm" --Via "g19_lab2\startup_stm32f407xx._ia"
+"C:\Keil_v5\ARM\ARMCC\Bin\ArmLink" --Via "G19_LAB2\G19_LAB2.lnp"
+"C:\Keil_v5\ARM\ARMCC\Bin\fromelf.exe" "G19_LAB2\G19_LAB2.axf" --i32combined --output "G19_LAB2\G19_LAB2.hex"
