@@ -41,6 +41,7 @@
 
 /* External variables --------------------------------------------------------*/
 extern ADC_HandleTypeDef hadc1;
+int ticks = 0;
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
@@ -52,12 +53,13 @@ extern ADC_HandleTypeDef hadc1;
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
-
+	ticks++;
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   HAL_SYSTICK_IRQHandler();
   /* USER CODE BEGIN SysTick_IRQn 1 */
 
+	HAL_GPIO_TogglePin(GPIOD, LD6_Pin);
   /* USER CODE END SysTick_IRQn 1 */
 }
 

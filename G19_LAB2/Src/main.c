@@ -76,6 +76,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 	adc_val = HAL_ADC_GetValue(hadc);
 }
 
+
 int main(void)
 {
 
@@ -126,12 +127,12 @@ int main(void)
 		HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_8B_R, dac_val++);
   /* USER CODE BEGIN 3 */
 		if(GPIOA->IDR & GPIO_PIN_0) {
-			HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
+//			HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
 			HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_SET);
 			HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
 		} else {
-			HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
+//			HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
 			HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_SET);
@@ -187,7 +188,7 @@ void SystemClock_Config(void)
 
     /**Configure the Systick interrupt time 
     */
-  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
+  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/15);
 
     /**Configure the Systick 
     */
