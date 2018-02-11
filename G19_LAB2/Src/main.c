@@ -71,6 +71,11 @@ static void MX_DAC_Init(void);
 int adc_val;
 int dac_val;
 
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
+	adc_val = HAL_ADC_GetValue(hadc);
+}
+
 int main(void)
 {
 
