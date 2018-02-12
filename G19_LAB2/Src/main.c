@@ -96,10 +96,9 @@ int main(void)
 			change_mode = 0;
 		}
 		FIR_C(adc_val, &filtered_val);
-		if(adc_val < min_val) min_val = adc_val;
-		else if (adc_val > max_val) max_val = adc_val;
+		float voltage_reading = 3.3 * filtered_val / 255.0;
 		float results[3];
-		plot_point(filtered_val, results);
+		plot_point(voltage_reading, results);
 		printf("%f\n", results[display_mode]);
 	}
 }
