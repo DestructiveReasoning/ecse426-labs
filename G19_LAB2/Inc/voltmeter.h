@@ -10,5 +10,6 @@
 #define AMOUNT_OF_DISPLAY_MODES 3
 
 void FIR_C(int input, float *output);
+void plot_point(float, float *);
 
 #endif

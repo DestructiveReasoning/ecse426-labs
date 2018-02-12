@@ -65,10 +65,8 @@ void SysTick_Handler(void)
 	HAL_ADC_Start_IT(&hadc1);
 	/* USER CODE END SysTick_IRQn 1 */
 	if(change_mode) {
-		button_counter++;
-		if(button_counter > 3) {
+		if(++button_counter > 4) {
 			button_counter = 0;
-			printf("Working\n");
 			display_mode = (display_mode + 1) % AMOUNT_OF_DISPLAY_MODES;
 			HAL_GPIO_WritePin(GPIOD, RMS_PIN, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(GPIOD, MAX_PIN, GPIO_PIN_RESET);

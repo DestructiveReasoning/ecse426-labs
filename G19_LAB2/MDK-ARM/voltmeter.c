@@ -1,4 +1,5 @@
 #include "voltmeter.h"
+#include "math.h"
 
 void FIR_C(int Input, float *Output) {
 	float b[] = {0.2, 0.2, 0.2, 0.2, 0.2}; //coefficients
@@ -16,4 +17,24 @@ void FIR_C(int Input, float *Output) {
 		count = 5; //avoid overflowing count
 	}
 	*Output = out;
+}
+
+void plot_point(float input, float* output) {
+	static int count = 0;
+	static float min_val = 10.0;
+	static float max_val = 0.0;
+	static float rms_counter = 0.0;
+	if(count == 0) {
+		min_val = input;
+		max_val = input;
+		rms_counter = input * input;
+	} else {
+		if(input < min_val) min_val = input;
+		else if(input > max_val) max_val = input;
+		rms_counter += input * input;
+	}
+	count = (count + 1) % 200;
+	output[RMS_MODE] = sqrt(rms_counter / count);
+	output[MIN_MODE] = min_val;
+	output[MAX_MODE] = max_val;
 }

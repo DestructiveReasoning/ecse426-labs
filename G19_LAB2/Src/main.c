@@ -98,20 +98,9 @@ int main(void)
 		FIR_C(adc_val, &filtered_val);
 		if(adc_val < min_val) min_val = adc_val;
 		else if (adc_val > max_val) max_val = adc_val;
-		
-		switch(display_mode) {
-			case RMS_MODE:
-				printf("RMS Value: %f\n", filtered_val);
-				break;
-			case MIN_MODE:
-				printf("Minimum Value: %d\n", min_val);
-				break;
-			case MAX_MODE:
-				printf("Maximum Value: %d\n", max_val);
-				break;
-			default:
-				break;
-		}
+		float results[3];
+		plot_point(filtered_val, results);
+		printf("%f\n", results[display_mode]);
 	}
 }
 
