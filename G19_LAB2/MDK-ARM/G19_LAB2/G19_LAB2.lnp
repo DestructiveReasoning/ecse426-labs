@@ -3,6 +3,7 @@
 "g19_lab2\stm32f4xx_hal_msp.o"
 "g19_lab2\main.o"
 "g19_lab2\fput_debug.o"
+"g19_lab2\voltmeter.o"
 "g19_lab2\system_stm32f4xx.o"
 "g19_lab2\stm32f4xx_hal_adc_ex.o"
 "g19_lab2\stm32f4xx_hal_adc.o"

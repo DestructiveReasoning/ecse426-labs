@@ -34,6 +34,7 @@
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx.h"
 #include "stm32f4xx_it.h"
+#include "voltmeter.h"
 
 /* USER CODE BEGIN 0 */
 
@@ -43,6 +44,8 @@
 extern ADC_HandleTypeDef hadc1;
 extern int adc_val;
 extern int dac_val;
+extern int change_mode;
+extern int display_mode;
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
@@ -54,13 +57,39 @@ extern int dac_val;
 void SysTick_Handler(void)
 {
 	/* USER CODE BEGIN SysTick_IRQn 0 */
-
+	static int button_counter = 0;
 	/* USER CODE END SysTick_IRQn 0 */
 	HAL_IncTick();
 	HAL_SYSTICK_IRQHandler();
 	/* USER CODE BEGIN SysTick_IRQn 1 */
 	HAL_ADC_Start_IT(&hadc1);
 	/* USER CODE END SysTick_IRQn 1 */
+	if(change_mode) {
+		button_counter++;
+		if(button_counter > 3) {
+			button_counter = 0;
+			printf("Working\n");
+			display_mode = (display_mode + 1) % AMOUNT_OF_DISPLAY_MODES;
+			HAL_GPIO_WritePin(GPIOD, RMS_PIN, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOD, MAX_PIN, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOD, MIN_PIN, GPIO_PIN_RESET);
+			switch(display_mode) {
+				case RMS_MODE:
+					HAL_GPIO_WritePin(GPIOD, RMS_PIN, GPIO_PIN_SET);
+					break;
+				case MIN_MODE:
+					HAL_GPIO_WritePin(GPIOD, MIN_PIN, GPIO_PIN_SET);
+					break;
+				case MAX_MODE:
+					HAL_GPIO_WritePin(GPIOD, MAX_PIN, GPIO_PIN_SET);
+					break;
+				default:
+					break;
+			}
+		}
+	} else {
+		button_counter = 0;
+	}
 }
 
 /******************************************************************************/

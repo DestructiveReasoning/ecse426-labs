@@ -37,23 +37,14 @@
  */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "voltmeter.h"
 #include "stm32f4xx_hal.h"
 
 #define SYSTICK_FREQUENCY 50
 
-/* USER CODE BEGIN Includes */
-
-/* USER CODE END Includes */
-
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
-
 DAC_HandleTypeDef hdac;
-
-/* USER CODE BEGIN PV */
-/* Private variables ---------------------------------------------------------*/
-
-/* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
@@ -61,89 +52,67 @@ static void MX_GPIO_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_DAC_Init(void);
 
-/* USER CODE BEGIN PFP */
-/* Private function prototypes -----------------------------------------------*/
-
-/* USER CODE END PFP */
-
-/* USER CODE BEGIN 0 */
-
-/* USER CODE END 0 */
-
 int adc_val;
 int dac_val;
 int sample_count = 0;
+
+int change_mode = 0;
+
+int display_mode = RMS_MODE;
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 	adc_val = HAL_ADC_GetValue(hadc);
 	sample_count++;
 }
 
-
 int main(void)
 {
-
-	/* USER CODE BEGIN 1 */
-
-	/* USER CODE END 1 */
-
-	/* MCU Configuration----------------------------------------------------------*/
-
-	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
 	HAL_Init();
-
-	/* USER CODE BEGIN Init */
-
-	/* USER CODE END Init */
-
-	/* Configure the system clock */
 	SystemClock_Config();
 
-	/* USER CODE BEGIN SysInit */
-
-	/* USER CODE END SysInit */
-
-	/* Initialize all configured peripherals */
 	MX_GPIO_Init();
 	MX_ADC1_Init();
 	MX_DAC_Init();
-
-	/* USER CODE BEGIN 2 */
-
-	/* USER CODE END 2 */
-
-	/* Infinite loop */
-	/* USER CODE BEGIN WHILE */
 
 	dac_val = 0x30;
 	HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
 	HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_8B_R, dac_val); 
 
-
 	HAL_ADC_Start_IT(&hadc1);
 	adc_val = HAL_ADC_GetValue(&hadc1);
+	
+	HAL_GPIO_WritePin(GPIOD, RMS_PIN, GPIO_PIN_SET);
+	
+	float filtered_val = 0.0;
+	int min_val = 50;
+	int max_val = 0;
 
 	while (1)
 	{
 		/* USER CODE END WHILE */
-		printf("ADC got value: %d\n", adc_val);
-		//		HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_8B_R, dac_val++);
-		/* USER CODE BEGIN 3 */
 		if(GPIOA->IDR & GPIO_PIN_0) {
-			//			HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
-			HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_SET);
-			HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
+			change_mode = 1;
 		} else {
-			//			HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
-			HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_SET);
+			change_mode = 0;
 		}
-//		adc_val = HAL_ADC_GetValue(&hadc1);
+		FIR_C(adc_val, &filtered_val);
+		if(adc_val < min_val) min_val = adc_val;
+		else if (adc_val > max_val) max_val = adc_val;
+		
+		switch(display_mode) {
+			case RMS_MODE:
+				printf("RMS Value: %f\n", filtered_val);
+				break;
+			case MIN_MODE:
+				printf("Minimum Value: %d\n", min_val);
+				break;
+			case MAX_MODE:
+				printf("Maximum Value: %d\n", max_val);
+				break;
+			default:
+				break;
+		}
 	}
-	/* USER CODE END 3 */
-
 }
 
 /** System Clock Configuration
