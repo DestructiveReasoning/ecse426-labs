@@ -1,7 +1,4 @@
 SET PATH=C:\Keil_v5\ARM\ARMCC\Bin;C:\windows\system32;C:\windows;C:\windows\system32\wbem
-SET ARMCC5_ASMOPT=--diag_suppress=9931
-SET ARMCC5_CCOPT=--diag_suppress=9931
-SET ARMCC5_LINKOPT=--diag_suppress=9931
 SET CPU_TYPE=STM32F407VGTx
 SET CPU_VENDOR=STMicroelectronics
 SET UV2_TARGET=G19_LAB2

@@ -23,7 +23,7 @@ char get_display_leds(int c) {
 	//0bABCDEFG{DP}
 	c %= 10;
 	char led_config = 0;
-	if(c != 0 && c != 4) led_config |= SEG7_A;
+	if(c != 1 && c != 4) led_config |= SEG7_A;
 	if(c != 5 && c != 6) led_config |= SEG7_B;
 	if(c != 2) led_config |= SEG7_C;
 	if(c != 1 && c != 4 && c != 7) led_config |= SEG7_D;

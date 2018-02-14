@@ -66,21 +66,21 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 }
 
 void display_num(char code) {
-	if(code & SEG7_A) HAL_GPIO_WritePin(LED_A, GPIO_PIN_RESET);
+	if(code & SEG7_A) HAL_GPIO_WritePin(LED_A, GPIO_PIN_SET);
 	else HAL_GPIO_WritePin(LED_A, GPIO_PIN_RESET);
-	if(code & SEG7_B) HAL_GPIO_WritePin(LED_B, GPIO_PIN_RESET);
+	if(code & SEG7_B) HAL_GPIO_WritePin(LED_B, GPIO_PIN_SET);
 	else HAL_GPIO_WritePin(LED_B, GPIO_PIN_RESET);
-	if(code & SEG7_C) HAL_GPIO_WritePin(LED_C, GPIO_PIN_RESET);
+	if(code & SEG7_C) HAL_GPIO_WritePin(LED_C, GPIO_PIN_SET);
 	else HAL_GPIO_WritePin(LED_C, GPIO_PIN_RESET);
-	if(code & SEG7_D) HAL_GPIO_WritePin(LED_D, GPIO_PIN_RESET);
+	if(code & SEG7_D) HAL_GPIO_WritePin(LED_D, GPIO_PIN_SET);
 	else HAL_GPIO_WritePin(LED_D, GPIO_PIN_RESET);
-	if(code & SEG7_E) HAL_GPIO_WritePin(LED_E, GPIO_PIN_RESET);
+	if(code & SEG7_E) HAL_GPIO_WritePin(LED_E, GPIO_PIN_SET);
 	else HAL_GPIO_WritePin(LED_E, GPIO_PIN_RESET);
-	if(code & SEG7_F) HAL_GPIO_WritePin(LED_F, GPIO_PIN_RESET);
+	if(code & SEG7_F) HAL_GPIO_WritePin(LED_F, GPIO_PIN_SET);
 	else HAL_GPIO_WritePin(LED_F, GPIO_PIN_RESET);
-	if(code & SEG7_G) HAL_GPIO_WritePin(LED_G, GPIO_PIN_RESET);
+	if(code & SEG7_G) HAL_GPIO_WritePin(LED_G, GPIO_PIN_SET);
 	else HAL_GPIO_WritePin(LED_G, GPIO_PIN_RESET);
-	if(code & SEG7_DP) HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
+	if(code & SEG7_DP) HAL_GPIO_WritePin(LED_DP, GPIO_PIN_SET);
 	else HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
 }
 
@@ -119,6 +119,7 @@ int main(void)
 		float results[3];
 		plot_point(voltage_reading, results);
 		printf("%f\n", results[display_mode]);
+		display_num(get_display_leds(0));
 	}
 }
 
