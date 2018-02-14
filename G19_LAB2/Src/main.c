@@ -40,7 +40,7 @@
 #include "voltmeter.h"
 #include "stm32f4xx_hal.h"
 
-#define SYSTICK_FREQUENCY 50
+#define SYSTICK_FREQUENCY 200
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
@@ -60,6 +60,8 @@ int change_mode = 0;
 
 int display_mode = RMS_MODE;
 int the_num = 0;
+
+int counter = 0;
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 	adc_val = HAL_ADC_GetValue(hadc);
@@ -121,6 +123,23 @@ int main(void)
 		plot_point(voltage_reading, results);
 		printf("%f\n", results[display_mode]);
 		display_num(get_display_leds(the_num));
+
+		if(counter % 3 == 0) {
+			HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(DIG_SEL_ONES, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(DIG_SEL_TENTHS, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(DIG_SEL_HUNDREDTHS, GPIO_PIN_RESET);
+		} else if(counter % 3 == 1) {
+			HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(DIG_SEL_ONES, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(DIG_SEL_TENTHS, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(DIG_SEL_HUNDREDTHS, GPIO_PIN_RESET);
+		} else {
+			HAL_GPIO_WritePin(LED_DP, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(DIG_SEL_ONES, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(DIG_SEL_TENTHS, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(DIG_SEL_HUNDREDTHS, GPIO_PIN_SET);
+		}
 	}
 }
 
@@ -360,6 +379,13 @@ static void MX_GPIO_Init(void)
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	GPIO_InitStruct.Pin = GPIO_PIN_8;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+	/*Configure digit selector pins*/
+	GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_3|GPIO_PIN_0;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

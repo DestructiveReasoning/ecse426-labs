@@ -46,6 +46,7 @@ extern int adc_val;
 extern int dac_val;
 extern int change_mode;
 extern int display_mode;
+extern int counter;
 extern int the_num;
 
 /******************************************************************************/
@@ -59,15 +60,14 @@ void SysTick_Handler(void)
 {
 	/* USER CODE BEGIN SysTick_IRQn 0 */
 	static int button_counter = 0;
-	static int counter = 0;
 	/* USER CODE END SysTick_IRQn 0 */
 	HAL_IncTick();
 	HAL_SYSTICK_IRQHandler();
 	/* USER CODE BEGIN SysTick_IRQn 1 */
-	HAL_ADC_Start_IT(&hadc1);
+	if(counter % 4 == 0) HAL_ADC_Start_IT(&hadc1);
 	/* USER CODE END SysTick_IRQn 1 */
 	if(change_mode) {
-		if(++button_counter > 4) {
+		if(++button_counter > 16) {
 			button_counter = 0;
 			display_mode = (display_mode + 1) % AMOUNT_OF_DISPLAY_MODES;
 			HAL_GPIO_WritePin(GPIOD, RMS_PIN, GPIO_PIN_RESET);
@@ -90,8 +90,8 @@ void SysTick_Handler(void)
 	} else {
 		button_counter = 0;
 	}
+	if(counter % 200 == 0) the_num = (the_num + 1) % 10;
 	counter++;
-	if(counter % 50 == 0) the_num = (the_num + 1) % 10;
 }
 
 /******************************************************************************/

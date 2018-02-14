@@ -27,6 +27,10 @@
 #define LED_G GPIOB, GPIO_PIN_13
 #define LED_DP GPIOD, GPIO_PIN_8
 
+#define DIG_SEL_HUNDREDTHS	GPIOD, GPIO_PIN_7
+#define DIG_SEL_TENTHS		GPIOD, GPIO_PIN_3
+#define DIG_SEL_ONES		GPIOD, GPIO_PIN_0
+
 void FIR_C(int input, float *output);
 void plot_point(float, float *);
 char get_display_leds(int);
