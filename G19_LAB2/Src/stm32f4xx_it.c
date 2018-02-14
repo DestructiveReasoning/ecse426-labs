@@ -46,6 +46,7 @@ extern int adc_val;
 extern int dac_val;
 extern int change_mode;
 extern int display_mode;
+extern int the_num;
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
@@ -58,6 +59,7 @@ void SysTick_Handler(void)
 {
 	/* USER CODE BEGIN SysTick_IRQn 0 */
 	static int button_counter = 0;
+	static int counter = 0;
 	/* USER CODE END SysTick_IRQn 0 */
 	HAL_IncTick();
 	HAL_SYSTICK_IRQHandler();
@@ -88,6 +90,8 @@ void SysTick_Handler(void)
 	} else {
 		button_counter = 0;
 	}
+	counter++;
+	if(counter % 50 == 0) the_num = (the_num + 1) % 10;
 }
 
 /******************************************************************************/

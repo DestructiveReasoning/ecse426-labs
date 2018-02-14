@@ -59,6 +59,7 @@ int sample_count = 0;
 int change_mode = 0;
 
 int display_mode = RMS_MODE;
+int the_num = 0;
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 	adc_val = HAL_ADC_GetValue(hadc);
@@ -119,7 +120,7 @@ int main(void)
 		float results[3];
 		plot_point(voltage_reading, results);
 		printf("%f\n", results[display_mode]);
-		display_num(get_display_leds(0));
+		display_num(get_display_leds(the_num));
 	}
 }
 

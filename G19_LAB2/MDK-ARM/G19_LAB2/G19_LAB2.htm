@@ -3,7 +3,7 @@
 <title>Static Call Graph - [G19_LAB2\G19_LAB2.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image G19_LAB2\G19_LAB2.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060528: Last Updated: Tue Feb 13 19:52:39 2018
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060528: Last Updated: Tue Feb 13 20:14:09 2018
 <BR><P>
 <H3>Maximum Stack Usage =        176 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -865,8 +865,8 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SysTick_Handler
 </UL>
 
-<P><STRONG><a name="[9]"></a>SysTick_Handler</STRONG> (Thumb, 146 bytes, Stack size 24 bytes, stm32f4xx_it.o(i.SysTick_Handler))
-<BR><BR>[Stack]<UL><LI>Max Depth = 36<LI>Call Chain = SysTick_Handler &rArr; HAL_ADC_Start_IT
+<P><STRONG><a name="[9]"></a>SysTick_Handler</STRONG> (Thumb, 186 bytes, Stack size 32 bytes, stm32f4xx_it.o(i.SysTick_Handler))
+<BR><BR>[Stack]<UL><LI>Max Depth = 44<LI>Call Chain = SysTick_Handler &rArr; HAL_ADC_Start_IT
 </UL>
 <BR>[Calls]<UL><LI><a href="#[8d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_SYSTICK_IRQHandler
 <LI><a href="#[93]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_IncTick
@@ -937,7 +937,7 @@ Global Symbols
 <P><STRONG><a name="[5e]"></a>fputc</STRONG> (Thumb, 36 bytes, Stack size 0 bytes, fput_debug.o(i.fputc))
 <BR>[Address Reference Count : 1]<UL><LI> printfa.o(i.__0printf)
 </UL>
-<P><STRONG><a name="[a8]"></a>get_display_leds</STRONG> (Thumb, 92 bytes, Stack size 0 bytes, voltmeter.o(i.get_display_leds))
+<P><STRONG><a name="[a8]"></a>get_display_leds</STRONG> (Thumb, 108 bytes, Stack size 0 bytes, voltmeter.o(i.get_display_leds))
 <BR><BR>[Called By]<UL><LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 

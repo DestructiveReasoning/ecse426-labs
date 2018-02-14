@@ -27,9 +27,9 @@ char get_display_leds(int c) {
 	if(c != 5 && c != 6) led_config |= SEG7_B;
 	if(c != 2) led_config |= SEG7_C;
 	if(c != 1 && c != 4 && c != 7) led_config |= SEG7_D;
-	if(c % 2 == 0) led_config |= SEG7_E;
+	if(c % 2 == 0 && c != 4) led_config |= SEG7_E;
 	if(c != 1 && c != 2 && c != 3 && c != 7) led_config |= SEG7_F;
-	if(c != 1 && c != 7) led_config |= SEG7_G;
+	if(c != 1 && c != 7 && c != 0) led_config |= SEG7_G;
 	return led_config;
 }
 
