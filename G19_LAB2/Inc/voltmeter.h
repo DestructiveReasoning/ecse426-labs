@@ -18,6 +18,15 @@
 #define SEG7_G 0x02
 #define SEG7_DP 0x01
 
+#define LED_A GPIOE, GPIO_PIN_7
+#define LED_B GPIOE, GPIO_PIN_10
+#define LED_C GPIOE, GPIO_PIN_11
+#define LED_D GPIOE, GPIO_PIN_14
+#define LED_E GPIOE, GPIO_PIN_15
+#define LED_F GPIOB, GPIO_PIN_12
+#define LED_G GPIOB, GPIO_PIN_13
+#define LED_DP GPIOD, GPIO_PIN_8
+
 void FIR_C(int input, float *output);
 void plot_point(float, float *);
 char get_display_leds(int);
