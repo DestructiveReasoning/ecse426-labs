@@ -1,4 +1,7 @@
-SET PATH=C:\Keil_v5\ARM\ARMCC\Bin;C:\Program Files (x86)\Python36-32\Scripts\;C:\Program Files (x86)\Python36-32\;C:\ProgramData\Oracle\Java\javapath;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\Cadence\SPB_16.5\tools\pcb\bin;C:\Cadence\SPB_16.5\tools\bin;C:\Cadence\SPB_16.5\tools\libutil\bin;C:\Cadence\SPB_16.5\tools\fet\bin;C:\Cadence\SPB_16.5\tools\specctra\bin;C:\Cadence\SPB_16.5\tools\PSpice;C:\Cadence\SPB_16.5\tools\PSpice\Library;C:\Cadence\SPB_16.5\tools\Capture;C:\Cadence\SPB_16.5\OpenAccess\bin\win32\opt;C:\Program Files (x86)\IVI Foundation\VISA\WinNT\Bin\;C:\Program Files\IVI Foundation\VISA\Win64\Bin\;C:\Program Files (x86)\Microsoft SQL Server\80\Tools\Binn\;C:\Program Files (x86)\IVI Foundation\VISA\WinNT\Bin;c:\Program Files (x86)\Microsoft SQL Server\100\Tools\Binn\;c:\Program Files (x86)\Microsoft SQL Server\100\DTS\Binn\;C:\Program Files (x86)\National Instruments\Motion Assistant\bin\mxwplugins;C:\Program Files\MATLAB\R2017a\bin;C:\Program Files\Git\cmd;C:\Program Files\leJOS EV3\bin;C:\Program Files\Doxygen\bin;C:\Program Files (x86)\IVI Foundation\IVI\bin;C:\Program Files\IVI Foundation\IVI\bin;C:\apache-ant-1.10.1\bin;C:\Users\hwiltz\AppData\Local\Microsoft\WindowsApps;
+SET PATH=C:\Keil_v5\ARM\ARMCC\Bin;C:\windows\system32;C:\windows;C:\windows\system32\wbem
+SET ARMCC5_ASMOPT=--diag_suppress=9931
+SET ARMCC5_CCOPT=--diag_suppress=9931
+SET ARMCC5_LINKOPT=--diag_suppress=9931
 SET CPU_TYPE=STM32F407VGTx
 SET CPU_VENDOR=STMicroelectronics
 SET UV2_TARGET=G19_LAB2

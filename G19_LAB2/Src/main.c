@@ -65,6 +65,25 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 	sample_count++;
 }
 
+void display_num(char code) {
+	if(code & SEG7_A) HAL_GPIO_WritePin(LED_A, GPIO_PIN_RESET);
+	else HAL_GPIO_WritePin(LED_A, GPIO_PIN_RESET);
+	if(code & SEG7_B) HAL_GPIO_WritePin(LED_B, GPIO_PIN_RESET);
+	else HAL_GPIO_WritePin(LED_B, GPIO_PIN_RESET);
+	if(code & SEG7_C) HAL_GPIO_WritePin(LED_C, GPIO_PIN_RESET);
+	else HAL_GPIO_WritePin(LED_C, GPIO_PIN_RESET);
+	if(code & SEG7_D) HAL_GPIO_WritePin(LED_D, GPIO_PIN_RESET);
+	else HAL_GPIO_WritePin(LED_D, GPIO_PIN_RESET);
+	if(code & SEG7_E) HAL_GPIO_WritePin(LED_E, GPIO_PIN_RESET);
+	else HAL_GPIO_WritePin(LED_E, GPIO_PIN_RESET);
+	if(code & SEG7_F) HAL_GPIO_WritePin(LED_F, GPIO_PIN_RESET);
+	else HAL_GPIO_WritePin(LED_F, GPIO_PIN_RESET);
+	if(code & SEG7_G) HAL_GPIO_WritePin(LED_G, GPIO_PIN_RESET);
+	else HAL_GPIO_WritePin(LED_G, GPIO_PIN_RESET);
+	if(code & SEG7_DP) HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
+	else HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
+}
+
 int main(void)
 {
 	HAL_Init();
@@ -264,6 +283,9 @@ static void MX_GPIO_Init(void)
 	HAL_GPIO_WritePin(GPIOD, LD4_Pin|LD3_Pin|LD5_Pin|LD6_Pin 
 			|Audio_RST_Pin, GPIO_PIN_RESET);
 
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_7|GPIO_PIN_11|GPIO_PIN_10|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12|GPIO_PIN_13, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin : CS_I2C_SPI_Pin */
 	GPIO_InitStruct.Pin = CS_I2C_SPI_Pin;
@@ -325,7 +347,7 @@ static void MX_GPIO_Init(void)
 	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
 	/*Configure 7 segment pins*/
-	GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_11|GPIO_PIN_10|GPIO_PIN_14|GPIO_PIN_15
+	GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_11|GPIO_PIN_10|GPIO_PIN_14|GPIO_PIN_15;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
