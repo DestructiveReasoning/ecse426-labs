@@ -1,0 +1,90 @@
+\hypertarget{voltmeter_8c}{}\section{voltmeter.\+c File Reference}
+\label{voltmeter_8c}\index{voltmeter.\+c@{voltmeter.\+c}}
+
+
+Handles Voltmeter Utilities.  
+
+
+{\ttfamily \#include \char`\"{}voltmeter.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}math.\+h\char`\"{}}\newline
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{voltmeter_8c_aa3b68e65c6cc23bd518216b309d23d12}{F\+I\+R\+\_\+C}} (int Input, float $\ast$Output)
+\begin{DoxyCompactList}\small\item\em F\+IR filter 4th order filter that outputs the average over the past 5 inputs. \end{DoxyCompactList}\item 
+char \mbox{\hyperlink{voltmeter_8c_abf9f113fd0f70a6bc4bbe026d0ec54d2}{get\+\_\+display\+\_\+leds}} (int c)
+\begin{DoxyCompactList}\small\item\em Get byte to indicate which segments should be turned on for a given integer Should be used as input to \mbox{\hyperlink{main_8c_aec6b12e3817e2475ae3dc769cf27b1ca}{display\+\_\+num()}} \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{voltmeter_8c_a6149fca5bff5218dc52abd8ec28da449}{plot\+\_\+point}} (float input, float $\ast$output)
+\begin{DoxyCompactList}\small\item\em Processes A\+DC readings Used to keep track of R\+MS, min, and max over the past 10 seconds. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Handles Voltmeter Utilities. 
+
+
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{voltmeter_8c_aa3b68e65c6cc23bd518216b309d23d12}\label{voltmeter_8c_aa3b68e65c6cc23bd518216b309d23d12}} 
+\index{voltmeter.\+c@{voltmeter.\+c}!F\+I\+R\+\_\+C@{F\+I\+R\+\_\+C}}
+\index{F\+I\+R\+\_\+C@{F\+I\+R\+\_\+C}!voltmeter.\+c@{voltmeter.\+c}}
+\subsubsection{\texorpdfstring{F\+I\+R\+\_\+\+C()}{FIR\_C()}}
+{\footnotesize\ttfamily void F\+I\+R\+\_\+C (\begin{DoxyParamCaption}\item[{int}]{Input,  }\item[{float $\ast$}]{Output }\end{DoxyParamCaption})}
+
+
+
+F\+IR filter 4th order filter that outputs the average over the past 5 inputs. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em Input} & Digital input reading \\
+\hline
+{\em Output} & Reference to float to store the filtered output \\
+\hline
+\end{DoxyParams}
+
+\begin{DoxyRetVals}{Return values}
+{\em None} & \\
+\hline
+\end{DoxyRetVals}
+\mbox{\Hypertarget{voltmeter_8c_abf9f113fd0f70a6bc4bbe026d0ec54d2}\label{voltmeter_8c_abf9f113fd0f70a6bc4bbe026d0ec54d2}} 
+\index{voltmeter.\+c@{voltmeter.\+c}!get\+\_\+display\+\_\+leds@{get\+\_\+display\+\_\+leds}}
+\index{get\+\_\+display\+\_\+leds@{get\+\_\+display\+\_\+leds}!voltmeter.\+c@{voltmeter.\+c}}
+\subsubsection{\texorpdfstring{get\+\_\+display\+\_\+leds()}{get\_display\_leds()}}
+{\footnotesize\ttfamily char get\+\_\+display\+\_\+leds (\begin{DoxyParamCaption}\item[{int}]{c }\end{DoxyParamCaption})}
+
+
+
+Get byte to indicate which segments should be turned on for a given integer Should be used as input to \mbox{\hyperlink{main_8c_aec6b12e3817e2475ae3dc769cf27b1ca}{display\+\_\+num()}} 
+
+
+\begin{DoxyParams}{Parameters}
+{\em c} & Integer to get byte code for \\
+\hline
+\end{DoxyParams}
+
+\begin{DoxyRetVals}{Return values}
+{\em Byte} & indicating which segments shouold be turned on \\
+\hline
+\end{DoxyRetVals}
+\mbox{\Hypertarget{voltmeter_8c_a6149fca5bff5218dc52abd8ec28da449}\label{voltmeter_8c_a6149fca5bff5218dc52abd8ec28da449}} 
+\index{voltmeter.\+c@{voltmeter.\+c}!plot\+\_\+point@{plot\+\_\+point}}
+\index{plot\+\_\+point@{plot\+\_\+point}!voltmeter.\+c@{voltmeter.\+c}}
+\subsubsection{\texorpdfstring{plot\+\_\+point()}{plot\_point()}}
+{\footnotesize\ttfamily void plot\+\_\+point (\begin{DoxyParamCaption}\item[{float}]{input,  }\item[{float $\ast$}]{output }\end{DoxyParamCaption})}
+
+
+
+Processes A\+DC readings Used to keep track of R\+MS, min, and max over the past 10 seconds. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em input} & Latest analog A\+DC reading \\
+\hline
+{\em output} & Array to store the three display values (R\+MS, min, max) \\
+\hline
+\end{DoxyParams}
+
+\begin{DoxyRetVals}{Return values}
+{\em None} & \\
+\hline
+\end{DoxyRetVals}

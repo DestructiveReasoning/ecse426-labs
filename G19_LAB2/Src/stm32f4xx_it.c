@@ -47,7 +47,6 @@ extern int dac_val;
 extern int change_mode;
 extern int display_mode;
 extern int counter;
-extern int the_num;
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
@@ -67,7 +66,7 @@ void SysTick_Handler(void)
 	if(counter % 4 == 0) HAL_ADC_Start_IT(&hadc1);
 	/* USER CODE END SysTick_IRQn 1 */
 	if(change_mode) {
-		if(++button_counter > 32) {
+		if(++button_counter > 32) { //Prevent multiple mode changes from one button press
 			button_counter = 0;
 			display_mode = (display_mode + 1) % AMOUNT_OF_DISPLAY_MODES;
 			change_mode = 0;
@@ -90,13 +89,8 @@ void SysTick_Handler(void)
  */
 void EXTI0_IRQHandler(void)
 {
-	/* USER CODE BEGIN EXTI0_IRQn 0 */
-
-	/* USER CODE END EXTI0_IRQn 0 */
 	HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
-	/* USER CODE BEGIN EXTI0_IRQn 1 */
-	change_mode = 1;
-	/* USER CODE END EXTI0_IRQn 1 */
+	change_mode = 1; //Indicate that button was pressed to SysTick_Handler()
 }
 
 /**
@@ -104,13 +98,7 @@ void EXTI0_IRQHandler(void)
  */
 void ADC_IRQHandler(void)
 {
-	/* USER CODE BEGIN ADC_IRQn 0 */
-
-	/* USER CODE END ADC_IRQn 0 */
 	HAL_ADC_IRQHandler(&hadc1);
-	/* USER CODE BEGIN ADC_IRQn 1 */
-
-	/* USER CODE END ADC_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

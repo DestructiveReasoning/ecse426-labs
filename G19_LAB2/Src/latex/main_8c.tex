@@ -1,0 +1,250 @@
+\hypertarget{main_8c}{}\section{main.\+c File Reference}
+\label{main_8c}\index{main.\+c@{main.\+c}}
+
+
+Main program body.  
+
+
+{\ttfamily \#include \char`\"{}main.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}voltmeter.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}stm32f4xx\+\_\+hal.\+h\char`\"{}}\newline
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{main_8c_a34f027fc9f3e4681b89a897674731a72}{S\+Y\+S\+T\+I\+C\+K\+\_\+\+F\+R\+E\+Q\+U\+E\+N\+CY}}~200
+\item 
+\#define \mbox{\hyperlink{main_8c_ab298faea909e0aa62203195aa3d6ca80}{A\+D\+C\+\_\+\+R\+ES}}~8
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{main_8c_a70af21c671abfcc773614a9a4f63d920}{System\+Clock\+\_\+\+Config}} (void)
+\begin{DoxyCompactList}\small\item\em System Clock Configuration. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{main_8c_af20a88180db1113be1e89266917d148b}{H\+A\+L\+\_\+\+A\+D\+C\+\_\+\+Conv\+Cplt\+Callback}} (A\+D\+C\+\_\+\+Handle\+Type\+Def $\ast$hadc)
+\begin{DoxyCompactList}\small\item\em Callback function invoked when A\+DC has finished converting a reading. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{main_8c_aec6b12e3817e2475ae3dc769cf27b1ca}{display\+\_\+num}} (char code)
+\begin{DoxyCompactList}\small\item\em Turns on appropriate display segments. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{main_8c_a840291bc02cba5474a4cb46a9b9566fe}{main}} (void)
+\item 
+void \mbox{\hyperlink{main_8c_a829116a51f1db1a72ebd1120f60719d5}{\+\_\+\+Error\+\_\+\+Handler}} (char $\ast$file, int line)
+\begin{DoxyCompactList}\small\item\em This function is executed in case of error occurrence. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+A\+D\+C\+\_\+\+Handle\+Type\+Def \mbox{\hyperlink{main_8c_a22b804736f5648d52f639b2647d4ed13}{hadc1}}
+\begin{DoxyCompactList}\small\item\em Handle to the analog to digital converter interface. \end{DoxyCompactList}\item 
+D\+A\+C\+\_\+\+Handle\+Type\+Def \mbox{\hyperlink{main_8c_a40a0d1383beda58531dfda6218720e45}{hdac}}
+\begin{DoxyCompactList}\small\item\em Handle to the digital to analog converter interface. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{main_8c_a6ba1c07c85c0ae4540e705263660ad15}{adc\+\_\+val}}
+\begin{DoxyCompactList}\small\item\em Stores latest A\+DC reading (digital) \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{main_8c_a30836a36b5ef47961fdab58cc3925780}{dac\+\_\+val}}
+\begin{DoxyCompactList}\small\item\em Stores latest digital value sent to the D\+AC. \end{DoxyCompactList}\item 
+float \mbox{\hyperlink{main_8c_ad186ceeaf76deb0e4590e0c2ce30faf8}{results}} \mbox{[}3\mbox{]}
+\begin{DoxyCompactList}\small\item\em Stores the latest values for each display mode (R\+MS, min, max) \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{main_8c_a4a30670e9f557138fd19e388c91a12e1}{change\+\_\+mode}} = 0
+\begin{DoxyCompactList}\small\item\em Flag to change display mode, handled in \mbox{\hyperlink{stm32f4xx__it_8c_a17e9789a29a87d2df54f12b94dd1a0b6}{E\+X\+T\+I0\+\_\+\+I\+R\+Q\+Handler()}} and \mbox{\hyperlink{stm32f4xx__it_8c_ab5e09814056d617c521549e542639b7e}{Sys\+Tick\+\_\+\+Handler()}} \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{main_8c_a4b9df8f91a89424d0d525e2d2b7513cd}{display\+\_\+mode}} = R\+M\+S\+\_\+\+M\+O\+DE
+\begin{DoxyCompactList}\small\item\em Dictates which value from results\mbox{[}\mbox{]} to display. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{main_8c_a617a47c70795bcff659815ad0efd2266}{counter}} = 0
+\begin{DoxyCompactList}\small\item\em Keeps track of Sys\+Tick interrupts for use as a software counter. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Main program body. 
+
+This notice applies to any and all portions of this file that are not between comment pairs U\+S\+ER C\+O\+DE B\+E\+G\+IN and U\+S\+ER C\+O\+DE E\+ND. Other portions of this file, whether inserted by the user or by software development tools are owned by their respective copyright owners.
+
+C\+O\+P\+Y\+R\+I\+G\+H\+T(c) 2018 S\+T\+Microelectronics
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met\+:
+\begin{DoxyEnumerate}
+\item Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+\item Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+\item Neither the name of S\+T\+Microelectronics nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+\end{DoxyEnumerate}
+
+T\+H\+IS S\+O\+F\+T\+W\+A\+RE IS P\+R\+O\+V\+I\+D\+ED BY T\+HE C\+O\+P\+Y\+R\+I\+G\+HT H\+O\+L\+D\+E\+RS A\+ND C\+O\+N\+T\+R\+I\+B\+U\+T\+O\+RS \char`\"{}\+A\+S I\+S\char`\"{} A\+ND A\+NY E\+X\+P\+R\+E\+SS OR I\+M\+P\+L\+I\+ED W\+A\+R\+R\+A\+N\+T\+I\+ES, I\+N\+C\+L\+U\+D\+I\+NG, B\+UT N\+OT L\+I\+M\+I\+T\+ED TO, T\+HE I\+M\+P\+L\+I\+ED W\+A\+R\+R\+A\+N\+T\+I\+ES OF M\+E\+R\+C\+H\+A\+N\+T\+A\+B\+I\+L\+I\+TY A\+ND F\+I\+T\+N\+E\+SS F\+OR A P\+A\+R\+T\+I\+C\+U\+L\+AR P\+U\+R\+P\+O\+SE A\+RE D\+I\+S\+C\+L\+A\+I\+M\+ED. IN NO E\+V\+E\+NT S\+H\+A\+LL T\+HE C\+O\+P\+Y\+R\+I\+G\+HT H\+O\+L\+D\+ER OR C\+O\+N\+T\+R\+I\+B\+U\+T\+O\+RS BE L\+I\+A\+B\+LE F\+OR A\+NY D\+I\+R\+E\+CT, I\+N\+D\+I\+R\+E\+CT, I\+N\+C\+I\+D\+E\+N\+T\+AL, S\+P\+E\+C\+I\+AL, E\+X\+E\+M\+P\+L\+A\+RY, OR C\+O\+N\+S\+E\+Q\+U\+E\+N\+T\+I\+AL D\+A\+M\+A\+G\+ES (I\+N\+C\+L\+U\+D\+I\+NG, B\+UT N\+OT L\+I\+M\+I\+T\+ED TO, P\+R\+O\+C\+U\+R\+E\+M\+E\+NT OF S\+U\+B\+S\+T\+I\+T\+U\+TE G\+O\+O\+DS OR S\+E\+R\+V\+I\+C\+ES; L\+O\+SS OF U\+SE, D\+A\+TA, OR P\+R\+O\+F\+I\+TS; OR B\+U\+S\+I\+N\+E\+SS I\+N\+T\+E\+R\+R\+U\+P\+T\+I\+ON) H\+O\+W\+E\+V\+ER C\+A\+U\+S\+ED A\+ND ON A\+NY T\+H\+E\+O\+RY OF L\+I\+A\+B\+I\+L\+I\+TY, W\+H\+E\+T\+H\+ER IN C\+O\+N\+T\+R\+A\+CT, S\+T\+R\+I\+CT L\+I\+A\+B\+I\+L\+I\+TY, OR T\+O\+RT (I\+N\+C\+L\+U\+D\+I\+NG N\+E\+G\+L\+I\+G\+E\+N\+CE OR O\+T\+H\+E\+R\+W\+I\+SE) A\+R\+I\+S\+I\+NG IN A\+NY W\+AY O\+UT OF T\+HE U\+SE OF T\+H\+IS S\+O\+F\+T\+W\+A\+RE, E\+V\+EN IF A\+D\+V\+I\+S\+ED OF T\+HE P\+O\+S\+S\+I\+B\+I\+L\+I\+TY OF S\+U\+CH D\+A\+M\+A\+GE. 
+
+\subsection{Macro Definition Documentation}
+\mbox{\Hypertarget{main_8c_ab298faea909e0aa62203195aa3d6ca80}\label{main_8c_ab298faea909e0aa62203195aa3d6ca80}} 
+\index{main.\+c@{main.\+c}!A\+D\+C\+\_\+\+R\+ES@{A\+D\+C\+\_\+\+R\+ES}}
+\index{A\+D\+C\+\_\+\+R\+ES@{A\+D\+C\+\_\+\+R\+ES}!main.\+c@{main.\+c}}
+\subsubsection{\texorpdfstring{A\+D\+C\+\_\+\+R\+ES}{ADC\_RES}}
+{\footnotesize\ttfamily \#define A\+D\+C\+\_\+\+R\+ES~8}
+
+\mbox{\Hypertarget{main_8c_a34f027fc9f3e4681b89a897674731a72}\label{main_8c_a34f027fc9f3e4681b89a897674731a72}} 
+\index{main.\+c@{main.\+c}!S\+Y\+S\+T\+I\+C\+K\+\_\+\+F\+R\+E\+Q\+U\+E\+N\+CY@{S\+Y\+S\+T\+I\+C\+K\+\_\+\+F\+R\+E\+Q\+U\+E\+N\+CY}}
+\index{S\+Y\+S\+T\+I\+C\+K\+\_\+\+F\+R\+E\+Q\+U\+E\+N\+CY@{S\+Y\+S\+T\+I\+C\+K\+\_\+\+F\+R\+E\+Q\+U\+E\+N\+CY}!main.\+c@{main.\+c}}
+\subsubsection{\texorpdfstring{S\+Y\+S\+T\+I\+C\+K\+\_\+\+F\+R\+E\+Q\+U\+E\+N\+CY}{SYSTICK\_FREQUENCY}}
+{\footnotesize\ttfamily \#define S\+Y\+S\+T\+I\+C\+K\+\_\+\+F\+R\+E\+Q\+U\+E\+N\+CY~200}
+
+
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{main_8c_a829116a51f1db1a72ebd1120f60719d5}\label{main_8c_a829116a51f1db1a72ebd1120f60719d5}} 
+\index{main.\+c@{main.\+c}!\+\_\+\+Error\+\_\+\+Handler@{\+\_\+\+Error\+\_\+\+Handler}}
+\index{\+\_\+\+Error\+\_\+\+Handler@{\+\_\+\+Error\+\_\+\+Handler}!main.\+c@{main.\+c}}
+\subsubsection{\texorpdfstring{\+\_\+\+Error\+\_\+\+Handler()}{\_Error\_Handler()}}
+{\footnotesize\ttfamily void \+\_\+\+Error\+\_\+\+Handler (\begin{DoxyParamCaption}\item[{char $\ast$}]{file,  }\item[{int}]{line }\end{DoxyParamCaption})}
+
+
+
+This function is executed in case of error occurrence. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em None} & \\
+\hline
+\end{DoxyParams}
+
+\begin{DoxyRetVals}{Return values}
+{\em None} & \\
+\hline
+\end{DoxyRetVals}
+\mbox{\Hypertarget{main_8c_aec6b12e3817e2475ae3dc769cf27b1ca}\label{main_8c_aec6b12e3817e2475ae3dc769cf27b1ca}} 
+\index{main.\+c@{main.\+c}!display\+\_\+num@{display\+\_\+num}}
+\index{display\+\_\+num@{display\+\_\+num}!main.\+c@{main.\+c}}
+\subsubsection{\texorpdfstring{display\+\_\+num()}{display\_num()}}
+{\footnotesize\ttfamily void display\+\_\+num (\begin{DoxyParamCaption}\item[{char}]{code }\end{DoxyParamCaption})}
+
+
+
+Turns on appropriate display segments. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em code} & Byte corresponding to the segments to turn on \\
+\hline
+\end{DoxyParams}
+
+\begin{DoxyRetVals}{Return values}
+{\em None} & \\
+\hline
+\end{DoxyRetVals}
+\mbox{\Hypertarget{main_8c_af20a88180db1113be1e89266917d148b}\label{main_8c_af20a88180db1113be1e89266917d148b}} 
+\index{main.\+c@{main.\+c}!H\+A\+L\+\_\+\+A\+D\+C\+\_\+\+Conv\+Cplt\+Callback@{H\+A\+L\+\_\+\+A\+D\+C\+\_\+\+Conv\+Cplt\+Callback}}
+\index{H\+A\+L\+\_\+\+A\+D\+C\+\_\+\+Conv\+Cplt\+Callback@{H\+A\+L\+\_\+\+A\+D\+C\+\_\+\+Conv\+Cplt\+Callback}!main.\+c@{main.\+c}}
+\subsubsection{\texorpdfstring{H\+A\+L\+\_\+\+A\+D\+C\+\_\+\+Conv\+Cplt\+Callback()}{HAL\_ADC\_ConvCpltCallback()}}
+{\footnotesize\ttfamily void H\+A\+L\+\_\+\+A\+D\+C\+\_\+\+Conv\+Cplt\+Callback (\begin{DoxyParamCaption}\item[{A\+D\+C\+\_\+\+Handle\+Type\+Def $\ast$}]{hadc }\end{DoxyParamCaption})}
+
+
+
+Callback function invoked when A\+DC has finished converting a reading. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em hadc} & Handle to the A\+DC unit that has finished converting a value \\
+\hline
+\end{DoxyParams}
+
+\begin{DoxyRetVals}{Return values}
+{\em None} & \\
+\hline
+\end{DoxyRetVals}
+\mbox{\Hypertarget{main_8c_a840291bc02cba5474a4cb46a9b9566fe}\label{main_8c_a840291bc02cba5474a4cb46a9b9566fe}} 
+\index{main.\+c@{main.\+c}!main@{main}}
+\index{main@{main}!main.\+c@{main.\+c}}
+\subsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily int main (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{main_8c_a70af21c671abfcc773614a9a4f63d920}\label{main_8c_a70af21c671abfcc773614a9a4f63d920}} 
+\index{main.\+c@{main.\+c}!System\+Clock\+\_\+\+Config@{System\+Clock\+\_\+\+Config}}
+\index{System\+Clock\+\_\+\+Config@{System\+Clock\+\_\+\+Config}!main.\+c@{main.\+c}}
+\subsubsection{\texorpdfstring{System\+Clock\+\_\+\+Config()}{SystemClock\_Config()}}
+{\footnotesize\ttfamily void System\+Clock\+\_\+\+Config (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+System Clock Configuration. 
+
+Configure the main internal regulator output voltage
+
+Initializes the C\+PU, A\+HB and A\+PB busses clocks
+
+Initializes the C\+PU, A\+HB and A\+PB busses clocks
+
+Configure the Systick interrupt time
+
+Configure the Systick
+
+\subsection{Variable Documentation}
+\mbox{\Hypertarget{main_8c_a6ba1c07c85c0ae4540e705263660ad15}\label{main_8c_a6ba1c07c85c0ae4540e705263660ad15}} 
+\index{main.\+c@{main.\+c}!adc\+\_\+val@{adc\+\_\+val}}
+\index{adc\+\_\+val@{adc\+\_\+val}!main.\+c@{main.\+c}}
+\subsubsection{\texorpdfstring{adc\+\_\+val}{adc\_val}}
+{\footnotesize\ttfamily int adc\+\_\+val}
+
+
+
+Stores latest A\+DC reading (digital) 
+
+\mbox{\Hypertarget{main_8c_a4a30670e9f557138fd19e388c91a12e1}\label{main_8c_a4a30670e9f557138fd19e388c91a12e1}} 
+\index{main.\+c@{main.\+c}!change\+\_\+mode@{change\+\_\+mode}}
+\index{change\+\_\+mode@{change\+\_\+mode}!main.\+c@{main.\+c}}
+\subsubsection{\texorpdfstring{change\+\_\+mode}{change\_mode}}
+{\footnotesize\ttfamily int change\+\_\+mode = 0}
+
+
+
+Flag to change display mode, handled in \mbox{\hyperlink{stm32f4xx__it_8c_a17e9789a29a87d2df54f12b94dd1a0b6}{E\+X\+T\+I0\+\_\+\+I\+R\+Q\+Handler()}} and \mbox{\hyperlink{stm32f4xx__it_8c_ab5e09814056d617c521549e542639b7e}{Sys\+Tick\+\_\+\+Handler()}} 
+
+\mbox{\Hypertarget{main_8c_a617a47c70795bcff659815ad0efd2266}\label{main_8c_a617a47c70795bcff659815ad0efd2266}} 
+\index{main.\+c@{main.\+c}!counter@{counter}}
+\index{counter@{counter}!main.\+c@{main.\+c}}
+\subsubsection{\texorpdfstring{counter}{counter}}
+{\footnotesize\ttfamily int counter = 0}
+
+
+
+Keeps track of Sys\+Tick interrupts for use as a software counter. 
+
+\mbox{\Hypertarget{main_8c_a30836a36b5ef47961fdab58cc3925780}\label{main_8c_a30836a36b5ef47961fdab58cc3925780}} 
+\index{main.\+c@{main.\+c}!dac\+\_\+val@{dac\+\_\+val}}
+\index{dac\+\_\+val@{dac\+\_\+val}!main.\+c@{main.\+c}}
+\subsubsection{\texorpdfstring{dac\+\_\+val}{dac\_val}}
+{\footnotesize\ttfamily int dac\+\_\+val}
+
+
+
+Stores latest digital value sent to the D\+AC. 
+
+\mbox{\Hypertarget{main_8c_a4b9df8f91a89424d0d525e2d2b7513cd}\label{main_8c_a4b9df8f91a89424d0d525e2d2b7513cd}} 
+\index{main.\+c@{main.\+c}!display\+\_\+mode@{display\+\_\+mode}}
+\index{display\+\_\+mode@{display\+\_\+mode}!main.\+c@{main.\+c}}
+\subsubsection{\texorpdfstring{display\+\_\+mode}{display\_mode}}
+{\footnotesize\ttfamily int display\+\_\+mode = R\+M\+S\+\_\+\+M\+O\+DE}
+
+
+
+Dictates which value from results\mbox{[}\mbox{]} to display. 
+
+\mbox{\Hypertarget{main_8c_a22b804736f5648d52f639b2647d4ed13}\label{main_8c_a22b804736f5648d52f639b2647d4ed13}} 
+\index{main.\+c@{main.\+c}!hadc1@{hadc1}}
+\index{hadc1@{hadc1}!main.\+c@{main.\+c}}
+\subsubsection{\texorpdfstring{hadc1}{hadc1}}
+{\footnotesize\ttfamily A\+D\+C\+\_\+\+Handle\+Type\+Def hadc1}
+
+
+
+Handle to the analog to digital converter interface. 
+
+\mbox{\Hypertarget{main_8c_a40a0d1383beda58531dfda6218720e45}\label{main_8c_a40a0d1383beda58531dfda6218720e45}} 
+\index{main.\+c@{main.\+c}!hdac@{hdac}}
+\index{hdac@{hdac}!main.\+c@{main.\+c}}
+\subsubsection{\texorpdfstring{hdac}{hdac}}
+{\footnotesize\ttfamily D\+A\+C\+\_\+\+Handle\+Type\+Def hdac}
+
+
+
+Handle to the digital to analog converter interface. 
+
+\mbox{\Hypertarget{main_8c_ad186ceeaf76deb0e4590e0c2ce30faf8}\label{main_8c_ad186ceeaf76deb0e4590e0c2ce30faf8}} 
+\index{main.\+c@{main.\+c}!results@{results}}
+\index{results@{results}!main.\+c@{main.\+c}}
+\subsubsection{\texorpdfstring{results}{results}}
+{\footnotesize\ttfamily float results\mbox{[}3\mbox{]}}
+
+
+
+Stores the latest values for each display mode (R\+MS, min, max) 
+

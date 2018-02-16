@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
- * File Name          : main.c
- * Description        : Main program body
+ * @file    	main.c
+ * @brief       Main program body
  ******************************************************************************
  ** This notice applies to any and all portions of this file
  * that are not between comment pairs USER CODE BEGIN and
@@ -40,11 +40,15 @@
 #include "voltmeter.h"
 #include "stm32f4xx_hal.h"
 
+/* @brief Frequency in Hz of SysTick interrupts*/
 #define SYSTICK_FREQUENCY 200
+/* @brief Resolution in bits of ADC readings*/
 #define ADC_RES 8
 
 /* Private variables ---------------------------------------------------------*/
+/** @brief Handle to the analog to digital converter interface*/
 ADC_HandleTypeDef hadc1;
+/** @brief Handle to the digital to analog converter interface*/
 DAC_HandleTypeDef hdac;
 
 /* Private function prototypes -----------------------------------------------*/
@@ -53,16 +57,27 @@ static void MX_GPIO_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_DAC_Init(void);
 
+/** @brief Stores latest ADC reading (digital) */
 int adc_val;
+/** @brief Stores latest digital value sent to the DAC */
 int dac_val;
+/** @brief Stores the latest values for each display mode (RMS, min, max) */
 float results[3];
 
+/** @brief Flag to change display mode, handled in EXTI0_IRQHandler() and SysTick_Handler() */
 int change_mode = 0;
 
+/** @brief Dictates which value from results[] to display */
 int display_mode = RMS_MODE;
 
+/** @brief Keeps track of SysTick interrupts for use as a software counter */
 int counter = 0;
 
+/**
+ * @brief Callback function invoked when ADC has finished converting a reading
+ * @param hadc Handle to the ADC unit that has finished converting a value
+ * @retval None
+ */
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 	adc_val = HAL_ADC_GetValue(hadc);
 	float filtered_val;
@@ -71,6 +86,11 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 	plot_point(voltage_reading, results);
 }
 
+/**
+ * @brief Turns on appropriate display segments
+ * @param code Byte corresponding to the segments to turn on
+ * @retval None
+ */
 void display_num(char code) {
 	if(code & SEG7_A) HAL_GPIO_WritePin(LED_A, GPIO_PIN_SET);
 	else HAL_GPIO_WritePin(LED_A, GPIO_PIN_RESET);
@@ -95,23 +115,26 @@ int main(void)
 	HAL_Init();
 	SystemClock_Config();
 
+	//Initialize all requisite pins and modules
 	MX_GPIO_Init();
 	MX_ADC1_Init();
 	MX_DAC_Init();
 
+	//Set dummy DAC value for testing
 	dac_val = 0x30;
 	HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
 	HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_8B_R, dac_val); 
 
+	//Initialize adc_val before the while loop
 	HAL_ADC_Start_IT(&hadc1);
 	adc_val = HAL_ADC_GetValue(&hadc1);
 	
+	//Initialize LEDs to represent RMS mode
 	HAL_GPIO_WritePin(GPIOD, RMS_PIN, GPIO_PIN_SET);
-
 
 	while (1)
 	{
-		/* USER CODE END WHILE */
+		//Multiplex 7-segment displays and display corresponding number
 		if(counter % 3 == 0) {
 			display_num(get_display_leds((int)(results[display_mode] * 100) % 100));
 			HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
@@ -131,6 +154,8 @@ int main(void)
 			HAL_GPIO_WritePin(DIG_SEL_TENTHS, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(DIG_SEL_HUNDREDTHS, GPIO_PIN_SET);
 		}
+
+		//Refresh mode LEDs at 100Hz
 		if(counter % 2 == 0) {
 			HAL_GPIO_WritePin(GPIOD, RMS_PIN, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(GPIOD, MAX_PIN, GPIO_PIN_RESET);
@@ -152,7 +177,7 @@ int main(void)
 	}
 }
 
-/** System Clock Configuration
+/** @brief System Clock Configuration
 */
 void SystemClock_Config(void)
 {
@@ -207,7 +232,7 @@ void SystemClock_Config(void)
 	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
-/* ADC1 init function */
+/** @brief ADC1 init function */
 static void MX_ADC1_Init(void)
 {
 
@@ -244,7 +269,7 @@ static void MX_ADC1_Init(void)
 
 }
 
-/* DAC init function */
+/** @brief DAC init function */
 static void MX_DAC_Init(void)
 {
 
@@ -459,10 +484,6 @@ static void MX_GPIO_Init(void)
 	HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 
 }
-
-/* USER CODE BEGIN 4 */
-
-/* USER CODE END 4 */
 
 /**
  * @brief  This function is executed in case of error occurrence.

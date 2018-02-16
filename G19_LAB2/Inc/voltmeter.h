@@ -1,6 +1,11 @@
 #ifndef __VOLTMETER_H_
 #define __VOLTMETER_H_
 
+/**
+ *******************
+ * @file voltmeter.h
+ */
+
 #define RMS_MODE 0
 #define MIN_MODE 1
 #define MAX_MODE 2
