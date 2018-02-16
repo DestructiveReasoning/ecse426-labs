@@ -38,17 +38,37 @@ void plot_point(float input, float* output) {
 	static float min_val = 10.0;
 	static float max_val = 0.0;
 	static float rms_counter = 0.0;
+	static float min_queue[10];
+	static float max_queue[10];
+	static int seconds_counter = 0;
+	static int queue_length = 0;
+
 	if(count == 0) {
+		rms_counter = input * input;
 		min_val = input;
 		max_val = input;
-		rms_counter = input * input;
-	} else {
+		min_queue[seconds_counter] = min_val;
+		max_queue[seconds_counter] = max_val;
+		seconds_counter = (seconds_counter + 1) % 10;
+		queue_length = (queue_length >= 10) ? 10 : queue_length + 1;
+	} 
+	else {
+		rms_counter += input * input;
 		if(input < min_val) min_val = input;
 		else if(input > max_val) max_val = input;
-		rms_counter += input * input;
 	}
+
 	output[RMS_MODE] = sqrt(rms_counter / (count + 1));
-	output[MIN_MODE] = min_val;
-	output[MAX_MODE] = max_val;
+	int c;
+	float m = min_queue[0];
+	for(c = 1; c < queue_length; c++) {
+		if(min_queue[c] < m) m = min_queue[c];
+	}
+	output[MIN_MODE] = m;
+	m = max_queue[0];
+	for(c = 1; c < queue_length; c++) {
+		if(max_queue[c] > m) m = max_queue[c];
+	}
+	output[MAX_MODE] = m;
 	count = (count + 1) % 50;
 }

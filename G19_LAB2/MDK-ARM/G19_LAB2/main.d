@@ -1,6 +1,7 @@
 g19_lab2\main.o: ../Src/main.c
 g19_lab2\main.o: ../Inc/main.h
 g19_lab2\main.o: ../Inc/voltmeter.h
+g19_lab2\main.o: C:\Keil_v5\ARM\ARMCC\bin\..\include\stdlib.h
 g19_lab2\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
 g19_lab2\main.o: ../Inc/stm32f4xx_hal_conf.h
 g19_lab2\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h
