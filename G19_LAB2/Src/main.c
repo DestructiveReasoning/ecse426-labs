@@ -60,7 +60,6 @@ float results[3];
 int change_mode = 0;
 
 int display_mode = RMS_MODE;
-int the_num = 0;
 
 int counter = 0;
 

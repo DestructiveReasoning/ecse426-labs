@@ -1,9 +1,6 @@
 #ifndef __VOLTMETER_H_
 #define __VOLTMETER_H_
 
-#include<stdlib.h>
-
-
 #define RMS_MODE 0
 #define MIN_MODE 1
 #define MAX_MODE 2
@@ -33,13 +30,6 @@
 #define DIG_SEL_HUNDREDTHS	GPIOD, GPIO_PIN_7
 #define DIG_SEL_TENTHS		GPIOD, GPIO_PIN_3
 #define DIG_SEL_ONES		GPIOD, GPIO_PIN_0
-
-struct Queue {
-	int capacity;
-	int length;
-	int start;
-	float *data;
-};
 
 void FIR_C(int input, float *output);
 void plot_point(float, float *);
