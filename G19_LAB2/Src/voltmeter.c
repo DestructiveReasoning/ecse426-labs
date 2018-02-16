@@ -47,8 +47,8 @@ void plot_point(float input, float* output) {
 		else if(input > max_val) max_val = input;
 		rms_counter += input * input;
 	}
-	count = (count + 1) % 200;
-	output[RMS_MODE] = sqrt(rms_counter / count);
+	output[RMS_MODE] = sqrt(rms_counter / (count + 1));
 	output[MIN_MODE] = min_val;
 	output[MAX_MODE] = max_val;
+	count = (count + 1) % 50;
 }

@@ -41,6 +41,7 @@
 #include "stm32f4xx_hal.h"
 
 #define SYSTICK_FREQUENCY 200
+#define ADC_RES 8
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
@@ -54,7 +55,7 @@ static void MX_DAC_Init(void);
 
 int adc_val;
 int dac_val;
-int sample_count = 0;
+float results[3];
 
 int change_mode = 0;
 
@@ -65,7 +66,10 @@ int counter = 0;
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 	adc_val = HAL_ADC_GetValue(hadc);
-	sample_count++;
+	float filtered_val;
+	FIR_C(adc_val, &filtered_val);
+	float voltage_reading = 3.3 * filtered_val / ((1 << ADC_RES) - 1.0);
+	plot_point(voltage_reading, results);
 }
 
 void display_num(char code) {
@@ -104,20 +108,10 @@ int main(void)
 	adc_val = HAL_ADC_GetValue(&hadc1);
 	
 	HAL_GPIO_WritePin(GPIOD, RMS_PIN, GPIO_PIN_SET);
-	
-	float filtered_val = 0.0;
-	int min_val = 50;
-	int max_val = 0;
 
 	while (1)
 	{
 		/* USER CODE END WHILE */
-		FIR_C(adc_val, &filtered_val);
-		float voltage_reading = 3.3 * filtered_val / 255.0;
-		float results[3];
-		plot_point(voltage_reading, results);
-		printf("%f\n", results[display_mode]);
-
 		if(counter % 3 == 0) {
 			display_num(get_display_leds((int)(results[display_mode] * 100) % 100));
 			HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
