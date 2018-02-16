@@ -67,30 +67,14 @@ void SysTick_Handler(void)
 	if(counter % 4 == 0) HAL_ADC_Start_IT(&hadc1);
 	/* USER CODE END SysTick_IRQn 1 */
 	if(change_mode) {
-		if(++button_counter > 16) {
+		if(++button_counter > 32) {
 			button_counter = 0;
 			display_mode = (display_mode + 1) % AMOUNT_OF_DISPLAY_MODES;
-			HAL_GPIO_WritePin(GPIOD, RMS_PIN, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOD, MAX_PIN, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOD, MIN_PIN, GPIO_PIN_RESET);
-			switch(display_mode) {
-				case RMS_MODE:
-					HAL_GPIO_WritePin(GPIOD, RMS_PIN, GPIO_PIN_SET);
-					break;
-				case MIN_MODE:
-					HAL_GPIO_WritePin(GPIOD, MIN_PIN, GPIO_PIN_SET);
-					break;
-				case MAX_MODE:
-					HAL_GPIO_WritePin(GPIOD, MAX_PIN, GPIO_PIN_SET);
-					break;
-				default:
-					break;
-			}
+			change_mode = 0;
 		}
 	} else {
 		button_counter = 0;
 	}
-	if(counter % 200 == 0) the_num = (the_num + 1) % 10;
 	counter++;
 }
 
@@ -111,7 +95,7 @@ void EXTI0_IRQHandler(void)
 	/* USER CODE END EXTI0_IRQn 0 */
 	HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
 	/* USER CODE BEGIN EXTI0_IRQn 1 */
-
+	change_mode = 1;
 	/* USER CODE END EXTI0_IRQn 1 */
 }
 

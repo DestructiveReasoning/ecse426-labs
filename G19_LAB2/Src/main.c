@@ -112,11 +112,6 @@ int main(void)
 	while (1)
 	{
 		/* USER CODE END WHILE */
-		if(GPIOA->IDR & GPIO_PIN_0) {
-			change_mode = 1;
-		} else {
-			change_mode = 0;
-		}
 		FIR_C(adc_val, &filtered_val);
 		float voltage_reading = 3.3 * filtered_val / 255.0;
 		float results[3];
@@ -141,6 +136,24 @@ int main(void)
 			HAL_GPIO_WritePin(DIG_SEL_ONES, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(DIG_SEL_TENTHS, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(DIG_SEL_HUNDREDTHS, GPIO_PIN_SET);
+		}
+		if(counter % 2 == 0) {
+			HAL_GPIO_WritePin(GPIOD, RMS_PIN, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOD, MAX_PIN, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOD, MIN_PIN, GPIO_PIN_RESET);
+			switch(display_mode) {
+				case RMS_MODE:
+					HAL_GPIO_WritePin(GPIOD, RMS_PIN, GPIO_PIN_SET);
+					break;
+				case MIN_MODE:
+					HAL_GPIO_WritePin(GPIOD, MIN_PIN, GPIO_PIN_SET);
+					break;
+				case MAX_MODE:
+					HAL_GPIO_WritePin(GPIOD, MAX_PIN, GPIO_PIN_SET);
+					break;
+				default:
+					break;
+			}
 		}
 	}
 }
@@ -489,6 +502,7 @@ ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
 	/* USER CODE END 6 */
 
 }
+
 
 #endif
 
