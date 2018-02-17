@@ -1,4 +1,4 @@
-\documentclass[12pt]{article}
+\documentclass[12pt]{report}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{graphicx}
 \usepackage{hyperref}
@@ -31,8 +31,11 @@ height=4em, text width=3cm, node distance=5cm]
 \begin{document}
 \maketitle
 \tableofcontents
+\let\clearpage\relax
 \listoffigures
+\let\clearpage\relax
 \listoftables
+\newpage
 \section{Implementation}
 The design of the voltmeter was fairly complex and was composed of several modules.
 These modules included the \hyperref[userinput]{user input module} for processing user input via the
@@ -181,4 +184,101 @@ ADC conversions at 50Hz. This was accomplished by starting the ADC conversion wh
 \texttt{counter} variable was a multiple of 4.
 
 \subsection{The Data Processing Module}\label{dataproc}
+Given the digital readings from the ADC, the next step was to filter them to reduce noise and to
+then translate the readings into meaningful values. These steps were carried out in the
+\texttt{ConvCpltCallback()} function (see \hyperref[adcflow]{Figure 2}). In order to reduce noise,
+the digital readings
+were passed through a $4^{th}$ order FIR filter, which effectively output the average over the past
+5 inputs. A $9^{th}$ order filter was experimented (which effetively output the average over the
+past 10 inputs), but it had a negligible effect on the performance of the voltmeter. Since the
+$9^{th}$ order filter required considerably more memory, the $4^{th}$ order filter was chosen. By
+passing each new ADC reading through the filter, potential noise will be ``smoothed out", as it will
+be converted into the average of that reading and the previous 4.\\\\
+Upon filtering the ADC readings, the filtered output was then translated into its analog
+representation according to
+\begin{equation}
+	x_a = V_{DD}\left (\frac{\mathcal{F}(x_d)}{2^{R} -1}\right)
+\end{equation}
+where $x_a$ is the analog representation of the new ADC reading, $\mathcal{F}(x_d)$ is the filtered
+digital ADC reading, $R$ is the resolution (in bits) of the ADC, and $V_{DD}$ is the highest voltage
+that the ADC is rated for. Finally, the analog value is passed to the \texttt{plot\_point()}
+function, which is responsible for curating the inputs into the form in which they should be
+displayed.\\\\
+The goal of the \texttt{plot\_point()} function is to maintain the values of the RMS voltage over
+the past 10 seconds, as well as the minimum and maximum voltages over the past 10 seconds, while
+making efficient use of memory. It was decided to design this in a ``moving window" fashion, meaning
+the values to be displayed will always taken into account data from within the past 10 seconds, and
+not in discrete 10 second blocks. With the requirement of keeping memory usage down to at most 20
+samples, this was a difficult task. Firstly, it was decided that the minimum and maximum voltage do
+not need to be updated very frequently. Of the 20 samples, 5 samples were allocated to each of
+minimum and maximum voltages, and the remaining 10 samples were reserved for RMS voltage. With only
+5 samples for each of minimum and maximum voltages, each sample would have to represent the minimum
+or maximum sample in a 2 second interval. Likewise, for RMS, each stored sample represents the
+running RMS over a 1 second interval. The minimum samples, maximum samples, and RMS samples were
+each stored in their own circular list (see \hyperref[circularlists]{Appendix A}) for efficient
+insertion and removal. For each 100 samples (2
+seconds) passed to \texttt{plot\_point()}, the minimum and maximum were calculated and added to their
+respective circular lists. For the RMS calculations, a new value was added to the RMS circular list
+for every 50 samples (1 second), however the value to be added could not be the RMS exactly. RMS is
+calculated as follows
+\begin{equation}
+	RMS = \sqrt{\frac{1}{|N|}\sum_{n\in N}n^2}
+\end{equation}
+where $N$ is the set of samples to calculate the RMS over. Since the square root operation is
+nonlinear, the RMS itself cannot be passed to the RMS circular list every second. Rather, the
+\textit{sum of squares} $\sum_{n\in N'}n^2$ is passed, and the RMS is calculated over the past 10
+sum of squares values.\\\\
+With the circular lists mentioned above, the \texttt{plot\_point()} function was able to return the
+RMS, minimum, and maximum voltages over the past 10 seconds fairly easily. For the minimum and
+maximum voltages, this consisted of simply finding the minimum value in the minimum voltages circular
+list and the maximum value in the maximum values circular list. The RMS over the past 10 seconds was
+computed as follows:
+\begin{equation}
+	RMS_{10} = \sqrt{\frac{1}{50|S|}\sum_{s\in S}s}
+\end{equation}
+where $S$ is the set of the 10 most recent second-long sum of squares calculations described above.
+Since each second consists of 50 readings, the sum of sums of squares had to be divided by $50|S|$,
+because it summed over 50 points for each $s\in S$.\\\\
+Note that although the RMS is only being updated once per second and the minumum and maximum are
+only being updated once every 2 seconds, the circular lists still store enough data to report the
+exact RMS, minimum, and maximum over a moving 10 second window. Due to the constraint on memory
+usage, the update frequency of the RMS, minimum, and maximum could not be improved with a moving
+window design.
+
+\newpage
+\begin{appendix}
+	\chapter{Circular Lists}\label{circularlists}
+	In order to calculate RMS, minimum, and maximum on a moving window, a ``circular" list data
+	structure was used. Circular lists contain a capacity $C$ describing how many items the list can
+	hold, an index $L$ describing where the next sample should go, and a vector $\delta$ which
+	stores the data of the list. Each time a new
+	element $\epsilon$ is to be added to the list, it is inserted by $\delta[(L++)\%C] = \epsilon$,
+	where $\%$ represents the modulo operation, and $L++$ increments $L$. Note that when the
+	circular list is full, that is to say $L = C$, the least recent data point in the list is
+	overwritten. For example, if one was to add the values $1,2,3,4,5,6$ in a circular list of
+	capacity 3, the progression of the circular list would look as follows:
+	\begin{equation*}
+		\begin{aligned}
+			\delta &= [] & \mbox{Add 1}\\
+			\delta &= [1,] & \mbox{Add 2}\\
+			\delta &= [1,2,] & \mbox{Add 3}\\
+			\delta &= [1,2,3] & \mbox{Add 4}\\
+			\delta &= [4,2,3] & \mbox{Add 5}\\
+			\delta &= [4,5,3] & \mbox{Add 6}\\
+			\delta &= [4,5,6]\\
+		\end{aligned}
+	\end{equation*}
+	Clearly, the $\delta$ in the previous example is always storing the latest 3 values that it
+	receives. Therefore, the circular list is storing a running window of its latest $C$ inputs.\\\\
+	This data structure is particularly convenient due to the running time of the operations it
+	provides for storing running windows. To store a running window, one must add an item to a list
+	and remove the oldest item from a list for each new sample in the worst case. With this data
+	structure, adding a new item involves calculating an index by $(L++)\%C$, which is an $O(1)$
+	operation. However, adding the new item removes the oldest item implicitly! Therefore, the
+	process of updating a running window with this data structure has $O(1)$ time complexity. In
+	terms of storage, the circular list stores the $C$ most recent samples as well as the value $C$
+	itself and the current index into the list, $L$. Therefore, the space complexity of the circular
+	list is $O(n)$, which cannot be improved. The addition of the two extra parameters $L$ and $C$
+	is a fairly low cost.
+\end{appendix}
 \end{document}
