@@ -1,3 +1,4 @@
+# Eliminating evil software piece by piece
 BINDIR=MDK-ARM/G19_LAB2
 GDBDIR=MDK-ARM
 KEIL_TOOLS=/home/harwiltz/.wine/drive_c/Keil_v5/ARM/ARMCC/bin
