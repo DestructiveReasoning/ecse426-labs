@@ -320,6 +320,67 @@ reduce the flickering. Frequencies that were multiples of 50Hz were attempted in
 prescaling for the ADC samples, and the lowest frequency that removed any sight of flickering was
 found to be 200Hz.
 
+
+\section{Testing and Observations}
+Upon testing the voltmeter described in this report, it was seen that the voltmeter performed quite
+well. The RMS readings displayed on the board were always, without any known exception, accurate to
+within a very small margin from their expected values.\\\\
+Due to the limitations on memory usage described in the \hyperref[dataproc]{data processing section}
+above, the running window design forced display updates to occur rather slowly. For example, if the
+voltage on the ADC pin was changed, it would take approximately 10 seconds for the RMS voltage to
+stabilize on the display. Of course, this was to be expected considering the design that was
+implemented. However, due to this issue an alternate design likely would have made more sense - for
+example, if the RMS was taken over a 200ms interval and updated every 200ms.\\\\
+Due to the FIR filtering and the fact that the running voltage is displayed as RMS, it was expected
+that the voltmeter would be quite accurate and would not show wild variations in the RMS, minimum,
+or maximum voltages once it has stabilized.
+In order to test the performance of the voltmeter, the following data was recorded when testing the
+voltmeter on various input voltages:
+\begin{table}[h]\label{testdata}
+	\caption{Results from testing the voltmeter with various input voltages}
+	\begin{center}
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			Input voltage (V) & Stabilized RMS (V) & Minimum voltage (V) & Maximum voltage
+			(V) & Percent error\\\hline
+			0.00 & 0.00 & 0.00 & 0.00 & 0\%\\\hline
+			0.60 & 0.60 & 0.60 & 0.61 & 0\%\\\hline
+			0.60 & 0.61 & 0.60 & 0.61 & 1.64\%\\\hline
+			0.60 & 0.60 & 0.60 & 0.61 & 0\%\\\hline
+			1.00 & 1.01 & 1.01 & 1.01 & 1\%\\\hline
+			1.00 & 1.01 & 1.01 & 1.02 & 1\%\\\hline
+			1.00 & 1.01 & 1.00 & 1.02 & 1\%\\\hline
+			2.00 & 2.00 & 1.99 & 2.00 & 0\%\\\hline
+			2.00 & 2.01 & 2.00 & 2.01 & 0.5\%\\\hline
+			2.00 & 2.02 & 2.00 & 2.02 & 1\%\\\hline
+			2.56 & 2.57 & 2.56 & 2.57 & 0.39\%\\\hline
+			2.56 & 2.57 & 2.56 & 2.57 & 0.39\%\\\hline
+			2.56 & 2.57 & 2.56 & 2.58 & 0.39\%\\\hline
+			3.00 & 3.00 & 3.00 & 3.00 & 0\%\\\hline
+		\end{tabular}
+	\end{center}
+\end{table}
+
+It can be seen from \hyperref[testdata]{Table 3} that the voltmeter performed quite well. At 0V and 3V (the
+highest and lowest voltage pins on the board), the voltmeter performed perfectly. When the voltmeter
+was connected to the DAC for input for the other test points, there was some smaller error in some
+cases, but this error never even reaches $2\%$. As explained in the \hyperref[dataaq]{data
+acquisition section}, the resolutions of the ADC and the DAC were 8 bit, allowing for resolution
+down to approximately 0.012V. It is very possible that the error seen from the test data is due to a
+lack of precision due to the 8 bit resolution. This is further reinforced by the fact that the
+difference in voltage between the expected value and that output on the board's RMS display never
+exceeded 0.02V, regardless of the magnitude of the input voltage.\\\\
+Overall, the voltmeter performed in complete accordance to th expectations. Although there was some
+small error in certain tests, the error was well within the range of the expected error due to the
+ADC and DAC resolution. Furthermore, as expected, the RMS voltage did converge 100\% within 10
+seconds, as the running window would suggest. Once the RMS voltage had stabilized, it remained very
+stable at its expected voltage (or close to the expected voltage, see \hyperref[testdata]{Table 3}),
+varying by at most 0.02V over a 30 second interval. The RMS did change slightly more than expected,
+even after convergence. This could have been due to insufficient filtering (perhaps $4^{th}$ order
+was not enough after all). Finally, the minimum and maximum voltage readings remained exceptionally
+stable over the 30 second intervals that were tested for each test input. This was expected as
+particularly high or low voltage readings were likely filtered out by the FIR filter.
+
 \newpage
 \begin{appendix}
 	\chapter{Circular Lists}\label{circularlists}
