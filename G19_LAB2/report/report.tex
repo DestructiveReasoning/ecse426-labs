@@ -4,6 +4,7 @@
 \usepackage{hyperref}
 \usepackage{color}
 \usepackage{tikz}
+\usepackage[siunitx]{circuitikz}
 \usetikzlibrary{shapes,arrows}
 \usepackage[margin=2cm]{geometry}
 
@@ -42,7 +43,8 @@ These modules included the \hyperref[userinput]{user input module} for processin
 push button, the \hyperref[dataaq]{data
 acquisition module} for digitizing analog data on the board, the \hyperref[dataproc]{data processing
 module} for filtering
-the data and associating meaning to its digital values, and the output module for displaying the
+the data and associating meaning to its digital values, and the \hyperref[output]{output module} for
+displaying the
 data to the user. This section will be divided into several subsections, each corresponding to a
 module, in order to organize the design decisions that were made.\\\\
 Since all of these modules needed to work together, they had to be synchronized
@@ -68,7 +70,6 @@ processor. To prevent this from occuring, it was decided to enforce a time delay
 button press handling routines, and this was achieved using the \texttt{SysTick} timer. The process
 is shown in \hyperref[buttonflow]{Figure 1}.\\\\
 \begin{figure}\label{buttonflow}
-	\caption{Debouncing button presses}
 	\begin{center}
 		\begin{tikzpicture}[node distance = 2cm, auto, scale=0.7, transform shape]
 			\node [block] (tick) {SysTick Interrupt Handler};
@@ -88,6 +89,7 @@ is shown in \hyperref[buttonflow]{Figure 1}.\\\\
 			\path [line] (ifcount) -- node {No} (wait);
 			\path [line] (ifcount) -- node {Yes} (button);
 		\end{tikzpicture}
+		\caption{Debouncing button presses}
 	\end{center}
 \end{figure}
 \textit{In brevarium}, the \texttt{EXTI0\_IRQHandler()} function (invoked by the button press
@@ -151,11 +153,10 @@ portion of the CPU's cycles. Although DMA was a very good alternative, the devel
 time to do the requisite research. Therefore, interrupt mode was selected. Despite the conversion
 mode, however, the frequency of ADC conversions remained to be implemented. A sample rate of 50Hz
 was required, so the \texttt{SysTick} interrupts were used to time the ADC conversions. Since the
-\texttt{SysTick} interrupts were occuring at 200Hz (see the Output subsection below), it was
+\texttt{SysTick} interrupts were occuring at 200Hz (see the \hyperref[output]{Output subsection} below), it was
 required to implement a prescaler in the \texttt{SysTick\_Handler()} function in order to sample at
 50Hz.
 \begin{figure}[h]\label{adcflow}
-	\caption{Flow of ADC processing}
 	\begin{tikzpicture}[node distance=2cm, auto]
 		\node [cloud, node distance=7cm] (systick) {SysTick Interrupt};
 		\node [decision, right of=systick,node distance=7cm] (ifcount) {Is counter a multiple of 4?};
@@ -174,6 +175,7 @@ required to implement a prescaler in the \texttt{SysTick\_Handler()} function in
 		\path [line, dashed] (haladc) -- (conv);
 		\path [line] (conv) -- (processadc);
 	\end{tikzpicture}
+	\caption{Flow of ADC processing}
 \end{figure}
 The process of handling ADC conversions is shown in \hyperref[adcflow]{Figure 2}. The
 \texttt{SysTick\_Handler()} maintains a \texttt{counter} and increments it at every \texttt{SysTick}
@@ -222,7 +224,7 @@ respective circular lists. For the RMS calculations, a new value was added to th
 for every 50 samples (1 second), however the value to be added could not be the RMS exactly. RMS is
 calculated as follows
 \begin{equation}
-	RMS = \sqrt{\frac{1}{|N|}\sum_{n\in N}n^2}
+	\mathsf{RMS} = \sqrt{\frac{1}{|N|}\sum_{n\in N}n^2}
 \end{equation}
 where $N$ is the set of samples to calculate the RMS over. Since the square root operation is
 nonlinear, the RMS itself cannot be passed to the RMS circular list every second. Rather, the
@@ -234,7 +236,7 @@ maximum voltages, this consisted of simply finding the minimum value in the mini
 list and the maximum value in the maximum values circular list. The RMS over the past 10 seconds was
 computed as follows:
 \begin{equation}
-	RMS_{10} = \sqrt{\frac{1}{50|S|}\sum_{s\in S}s}
+	\mathsf{RMS}_{10} = \sqrt{\frac{1}{50|S|}\sum_{s\in S}s}
 \end{equation}
 where $S$ is the set of the 10 most recent second-long sum of squares calculations described above.
 Since each second consists of 50 readings, the sum of sums of squares had to be divided by $50|S|$,
@@ -244,6 +246,79 @@ only being updated once every 2 seconds, the circular lists still store enough d
 exact RMS, minimum, and maximum over a moving 10 second window. Due to the constraint on memory
 usage, the update frequency of the RMS, minimum, and maximum could not be improved with a moving
 window design.
+
+\section{The Output Module}\label{output}
+The output module was responsible for displaying the data that the \hyperref[dataproc]{data
+processing module} computed using LEDs and 7 segment displays on the STM32F407 development board.
+This required setting up the GPIO configuration for three LEDs to indicate the display mode as well
+as 11 output pins to control the 7 segment displays. All LEDs and output pins were configured in
+push-pull mode at low speed with \texttt{GPIO\_NOPULL} set for the \texttt{Pull} parameter. These
+configurations were made because it was desired to output LOW and HIGH voltages instead of HIGH and
+high impedance. Resistors were included on the breadboard for the purpose of current limiting.\\\\
+Controlling the output LEDs for the display mode was very simple. Since the \texttt{SysTick}
+interrupt handler was responsible for updating a \texttt{display\_mode} variable upon button
+presses, the output LED was set by resetting all three LEDs and then setting the one corresponding
+to the appropriate display mode in the program's main loop.\\\\
+Manipulating the set of 7 segment displays was more difficult. In order to save wiring, the display
+took 8 data inputs (for each of the segments on a given display) and four selection inputs to select
+with display to illuminate. The strategy therefore was to multiplex the displays and update the data
+lines depending on which display was currently being illuminated. Assuming the the clock governing
+the switching of the display being illuminated is fast enough, the human eye should not be able to
+see the displays turning on and off; rather, it should look like all displays are on simultaneously.
+The selection inputs of the display chip were each connected to a common cathode line for a
+different 7 segment display. To turn on one of the 7 segment displays, the common cathode should be
+grounded. To turn it off, the common cathode should be disconnected altogether. To accomplish this,
+3 output pins on the board were designated to the selection lines (the fourth 7 segment display was
+not being used). These output pins were then connected to their respective common cathodes through
+NPN transistors as follows:\\
+\begin{figure}[h]
+	\begin{center}
+		\begin{circuitikz}
+			\draw (0,0) node[circ]{};
+			\draw (-1.5,0) node[] {Digit Select Pin};
+			\draw (3,0) node[npn] (npn) {};
+			\draw (0,0) to[R=4.7k$\Omega$] (2.4,0) -- (npn.B);
+			\draw (npn.E) node[ground] {};
+			\draw (npn.C) [short] to (5,0.75) node[circ] {Common Cathode Pin};
+		\end{circuitikz}
+	\end{center}
+	\caption{Selecting 7 segment display with transistors}
+\end{figure}
+The resistor limits the voltage across the base-emmitter junction of the transistor, thereby
+limiting the current flowing through it. When the digit select pin is HIGH, the transistor is active
+and a logic LOW is connected to the common cathode. However, when the digit select pin is LOW, the
+transistor is off, and from the common cathode's perspective, it sees an open circuit. Therefore,
+these transistor circuits can be used to turn on and off the different 7 segment displays.\\\\
+In order to display a number, first the appropriate number is selected according to the display
+mode. In the main program loop, the digit select pins are set according to the counter variable
+maintained by \texttt{SysTick}, such that each display is on once every three \texttt{SysTick}
+interrupts. Depending on which display is on at a given moment, the appropriate digit is extracted
+to be sent to the display according to \hyperref[decimalplace]{Table 2}.
+\begin{table}[h]\label{decimalplace}
+	\caption{Extracting digits from floating point number}
+	\begin{center}
+		\begin{tabular}{|c|c|}
+			\hline
+			Digit to be displayed & Function to extract appropriate digit\\\hline
+			Ones & $x\%10$\\\hline
+			Tenths & $(10x)\%10$\\\hline
+			Hundredths & $(100x)\%10$\\\hline
+		\end{tabular}
+	\end{center}
+\end{table}
+Given the digit calculated according to \hyperref[decimalplace]{Table 2}, it is then necessary to
+compute compute the 8 data bits sent to the 7 segment display. This was done by manually associating
+segments to digits and making a function returning a byte containing which segments are on or off.
+With this byte, the output pins on the board are set HIGH or LOW accordingly, thereby displaying the
+numbers on the 7 segment display.\\\\
+However, one design challenged still remained. It was imperative to ensure that the frequency of the
+displays being multiplexed was fast enough such that it would look like all displays look
+simultaneously on to the human eye. Originally, the \texttt{SysTick} frequency was set to 50Hz to
+accommodate the ADC, however at 50Hz each display turned on and off at $\frac{50}{3}$Hz, and the
+displays were noticeably flickering. Therefore, the \texttt{SysTick} timer had to be modified to
+reduce the flickering. Frequencies that were multiples of 50Hz were attempted in order to ease the
+prescaling for the ADC samples, and the lowest frequency that removed any sight of flickering was
+found to be 200Hz.
 
 \newpage
 \begin{appendix}
