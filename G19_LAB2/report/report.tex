@@ -52,7 +52,9 @@ appropriately, and this was achieved with the \texttt{SysTick} timer. The \textt
 invokes interrupts at a chosen frequency, and the interrupt handler was used to coordinate all of
 the modules. Since the configuration parameters of the \texttt{SysTick} timer were heavily
 influenced by the modules described above, they will be explained independently in the sections
-following where the design decisions were made.
+following where the design decisions were made. Specific details concerning the configuration
+parameters of the \hyperref[appendixgpio]{GPIO pins}, the \hyperref[appendixadc]{ADC}, and the
+\hyperref[appendixdac]{DAC} may be perused in the appendices.
 \subsection{The User Input Module}\label{userinput}
 One of the requirements of the voltmeter was to provide three display modes to the user: a display
 of the RMS voltage, and a display for each of minimum and maximum voltage updated within the past
@@ -382,7 +384,7 @@ stable over the 30 second intervals that were tested for each test input. This w
 particularly high or low voltage readings were likely filtered out by the FIR filter.
 
 \newpage
-\begin{appendix}
+\begin{appendix}\label{appendices}
 	\chapter{Circular Lists}\label{circularlists}
 	In order to calculate RMS, minimum, and maximum on a moving window, a ``circular" list data
 	structure was used. Circular lists contain a capacity $C$ describing how many items the list can
@@ -415,6 +417,84 @@ particularly high or low voltage readings were likely filtered out by the FIR fi
 	terms of storage, the circular list stores the $C$ most recent samples as well as the value $C$
 	itself and the current index into the list, $L$. Therefore, the space complexity of the circular
 	list is $O(n)$, which cannot be improved. The addition of the two extra parameters $L$ and $C$
-	is a fairly low cost.
+	is a fairly low cost.\\
+
+	\chapter{GPIO Configuration Parameters}\label{appendixgpio}
+	This appendix lists the configuration parameters set for each of the different GPIO pins (or
+	classes of GPIO pins).\\\\
+	\textbf{User Input Button}\\
+	\begin{tabular}{|c|c|}
+		\hline
+		Parameter & Value\\\hline
+		Mode & \texttt{GPIO\_MODE\_IT\_RISING}\\\hline
+		Pull & \texttt{GPIO\_NOPULL}\\\hline
+	\end{tabular}
+	\newline
+	\\\\
+	\textbf{Display Mode LEDs (4 of these)}\\
+	\begin{tabular}{|c|c|}
+		\hline
+		Parameter & Value\\\hline
+		Mode & \texttt{GPIO\_MODE\_OUTPUT\_PP}\\\hline
+		Pull & \texttt{GPIO\_NOPULL}\\\hline
+		Speed & \texttt{GPIO\_SPEED\_FREQ\_LOW}\\\hline
+	\end{tabular}
+	\newline
+	\\\\
+	\textbf{Display Segment Pins (8 of these)}\\
+	\begin{tabular}{|c|c|}
+		\hline
+		Parameter & Value\\\hline
+		Mode & \texttt{GPIO\_MODE\_OUTPUT\_PP}\\\hline
+		Pull & \texttt{GPIO\_NOPULL}\\\hline
+		Speed & \texttt{GPIO\_SPEED\_FREQ\_LOW}\\\hline
+	\end{tabular}
+	\newline
+	\\\\
+	\textbf{Display Selector Pins (3 of these)}\\
+	\begin{tabular}{|c|c|}
+		\hline
+		Parameter & Value\\\hline
+		Mode & \texttt{GPIO\_MODE\_OUTPUT\_PP}\\\hline
+		Pull & \texttt{GPIO\_NOPULL}\\\hline
+		Speed & \texttt{GPIO\_SPEED\_FREQ\_LOW}\\\hline
+	\end{tabular}
+	\newline
+	\newpage
+	\chapter{ADC Configuration Settings}\label{appendixadc}
+	\textbf{ADC Instance Parameters}\\
+	\begin{tabular}{|c|c|}
+		\hline
+		Parameter & Value\\\hline
+		Clock Prescaler & \texttt{ADC\_CLOCK\_SYNC\_PCLK\_DIV2}\\\hline
+		Resolution & \texttt{ADC\_RESOLUTION\_8B}\\\hline
+		Scan Conversion Mode & Disabled\\\hline
+		Continuous Conversion Mode & Disabled\\\hline
+		Discontinuous Conversion Mode & Disabled\\\hline
+		External Trigger Conversion Edge & \texttt{ADC\_EXTERNALTRIGCONVEDGE\_RISING}\\\hline
+		External Trigger Conversion & \texttt{ADC\_SOFTWARE\_START}\\\hline
+		Data Alignment & \texttt{ADC\_DATAALIGN\_RIGHT}\\\hline
+		Number of Conversions & 1\\\hline
+		DMA Continuous Requests & Disabled\\\hline
+		EOC Selection & \texttt{ADC\_EOC\_SINGLE\_CONV}\\\hline
+	\end{tabular}
+	\newline
+	\\\\
+	\textbf{ADC Channel Parameters (Channel 1)}\\
+	\begin{tabular}{|c|c|}
+		\hline
+		Parameter & Value\\\hline
+		Rank & 1\\\hline
+		Sampling Time & \texttt{ADC\_SAMPLETIME\_3CYCLES}\\\hline
+	\end{tabular}
+	\newpage
+	\chapter{DAC Configuration Settings}\label{appendixdac}
+	\textbf{DAC Channel Parameters}\\
+	\begin{tabular}{|c|c|}
+		\hline
+		Parameter & Value\\\hline
+		Trigger & \texttt{DAC\_TRIGGER\_NONE}\\\hline
+		Output Buffer & \texttt{DAC\_OUTPUTBUFFER\_ENABLE}\\\hline
+	\end{tabular}
 \end{appendix}
 \end{document}

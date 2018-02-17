@@ -5,3 +5,6 @@
 \contentsline {section}{\numberline {0.2}The Output Module}{6}{section.0.2}
 \contentsline {section}{\numberline {0.3}Testing and Observations}{8}{section.0.3}
 \contentsline {chapter}{\numberline {A}Circular Lists}{10}{appendix.A}
+\contentsline {chapter}{\numberline {B}GPIO Configuration Parameters}{11}{appendix.B}
+\contentsline {chapter}{\numberline {C}ADC Configuration Settings}{12}{appendix.C}
+\contentsline {chapter}{\numberline {D}DAC Configuration Settings}{13}{appendix.D}
