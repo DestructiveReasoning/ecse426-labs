@@ -10,7 +10,7 @@
 
 \title{ECSE 426 - Microprocessor Systems\\Lab Report 1: Analog Data Acquisition, Filtering, and
 Digital I/O}
-\author{Harley Wiltzer (260690006)\\Matthew Lesko}
+\author{Harley Wiltzer (260690006)\\Matthew Lesko (260692352)}
 \date{February 19, 2018}
 
 \definecolor{dblue}{rgb}{0.4,0.4,0.8}
@@ -37,6 +37,67 @@ height=4em, text width=3cm, node distance=5cm]
 \let\clearpage\relax
 \listoftables
 \newpage
+\section{Abstract}
+The purpose of the experiment is for the programmers to get exposure to analog data acquisition and data conditioning. The programmers will get familiar with the STM32CubeMX application, the HAL software libraries in embedded C, specifically for analog to digital signal conversion on the STM32F4 Discovery board and the I/O interface for buttons, LEDs and a 7-segment display on the board. This report will explain how the programmers configured their project and implemented the task mentioned below. As well as explain the challenges faced, the solutions implemented, the data encountered while testing and debugging, and the conclusions made. PUT REFERENCE TO CONCLUSION HERE
+\section{Problem Statement}
+The problem of the experiment is for the programmers to implement a solution for converting an analog signal to digital, filtering samples of the signal at a certain sampling frequency, calculating RMS, max, and min values, and finally displaying the calculated values on a 7-segment display with the help of a button for switching values. 
+As mentioned in the experiment 2 handout [1], solving the problem involves the following steps:
+\begin{enumerate}
+  \item Setting up the blue button;
+  \item Setting up a DAC;
+  \item Setting up an ADC;
+  \item Setting up the sampling frequency;
+  \item Signal filtering;
+  \item Making sense of data;
+  \item Configuring the voltage display;
+  \item And a bonus step: Configure ADC with DMA (Direct Memory Access);
+\end{enumerate}
+For any specific details about the required steps, please refer to the experiment 2 handout [1].
+The programmers faced challenges such as: 
+\begin{itemize}
+  \item Properly setting up the project with STM32CubeMX, and the HAL libraries;
+  \item Setting up the SysTick configuration;
+  \item Implementing a solution for the blue button to act as an interrupt as opposed to continuously reading values when it is held down; 
+  \item Mapping appropriate ADC and GPIO pins on the board and when writing the code;
+  \item Implementing a solution for calculating the RMS, max, and min values without storing 10 second records;
+  \item And designing a circuit for the 7-segment display on the bread board without damaging the display or the microcontroller board;
+\end{itemize}
+\section{Theory and Hypothesis}
+\subsection{System Clock}
+As mentioned in the second tutorial handout, the micro-controller has two sources of clock, an internal one and an external one which could be more accurate with the use of a crystal working at 8 MHz [2]. This clock determines the frequency of each other clock configured within the system. For this experiment, the RCC’s High Speed Clock pin is mapped to the external crystal.
+\subsection{ADC Clock}
+Microcontrollers can detect binary signals, but real-world signals are not as simple, programmers must deal with voltages such as 2.72V, 3.33V, etc. as opposed to just a binary decision of 0 or 1V. The STM32F4 Discover board has an ADC feature, governed by a clock, that allows one to convert analog signals to digital. To understand the ADC feature, one must first comprehend its sampling frequency.
+By having the programmers determine the system’s clock (SYSCLK), the ADC’s clock is determined by the following procedure [3]:\\
+\[ AHBCLK = SYSCLK * AHBPRESC (/1, 2, …, 512)\\ \]
+\[ APB2CLK = AHBCLK * APB2PRESC (/1, 2, 4, 8, 16)\\ \]
+\[ ADCCLK = APB2CLK * ADCPRESC (/2, 4, 6, 8)\\ \]
+The prescalers are parameters that configure the system’s multiple clocks, it is up to the designer to select the parameters. While there are multiple clocks, the important one to notice is the ADCCLK. The ADC’s clock determines the ADC’s sampling frequency.\\
+The total conversion time of the ADC is determined by solving is the following [3]:\\
+\[ Total Conversion Time = T_{Sampling} + T_{Conversion} \]\\
+One can find the conversion time (\(T_{Conversion}\)) by cross referencing the resolution to its respective amount of cycles within the time conversion table.\\
+PUT FIGURE HERE\\
+The sampling time (\(T_{Sampling}\)) is determined by the channel chosen for the ADC’s clock. Possible sample times are 3, 15, 28, 58, 84, 112, 144, and 480 cycles [3].\\
+Finally, one can derive the sampling frequency using the following equation:
+\[ Sampling Frequency (sps) = (1/ADCCLK * (Total Conversion time))^{-1} \]
+By knowing the sampling frequency, a designer can determine the number of samples obtained within a certain period and base their calculations for measurements from that.\\
+\subsection{ADC Component}
+There are many ways of implementing the ADC, but this report will go into detail about the theory for the ADC used in this experiment [4]. The voltages used across the ADC are of the following:\\
+\begin{itemize}
+  \item \(V_{IN}\): The voltage of the analog input;
+  \item \(V_{REF}\): Reference voltage fed to the ADC; 
+  \item \(V_{DAC}\): The DAC output which is forced to \(V_{REF}/2\):
+\end{itemize}
+The N-Bit register is first configured midscale, in which the MSB is 1, and all other bits are zeros. The length of the bit string stored in the N-Bit register is the number of bits chosen for the ADC’s resolution.\\
+PUT FIGURE HERE\\
+The comparator component outputs a logic high (1) if VIN is greater than VDAC or a logic low (0) otherwise. If the comparator’s output is high, then the SAR (Successive-Approximation-Register) does not change the current bit in the N-bit register, which is by default a 1. The SAR then moves down the bit string, changes the current bit to a 1, and allows another comparison. If the comparator’s output is low, the SAR forces the current bit in the N-bit register to a 0 and moves down to the next bit, changes the current bit to a 1, then allows another comparison. This process is done until the N-bit digital word is available in the register. By the end, the ADC has successfully converted an analog input to a digital word. In the case of this experiment, since the resolution is of 8 bits, the ADC would create 8-bit digital words.
+\subsection{Push-Pull and Open-Drain Output Stages}
+The open-drain output pin is driven by a single transistor as opposed to two in the push-pull output stage. There are two states for the open-drain output pin. When the output device is off, the pin has a floating voltage and when it is on, the transistor pulls the input signal to ground [5].
+A push-pull output stage has two transistors. One transistor dissipates the current from the load to ground or a negative supply, and the other supplying current to the load from a power supply [6]. The outputs of open-drain and push-pull accept all ranges of voltages within 0 to 3.3V [2]. 
+\subsection{Signal Filtering}
+The filter used for this experiment is identical to the one from experiment \#1. The implementation of the filter is simple. The filter holds five single-precision floating-point numbers and uses a technique called Moving Average to compute the average of the coefficients. The technique stores the last five inputs which are used again when a new input is passed to the filter.
+\subsection{Hypothesis}
+The programmers should be able to implement a solution for the problem at hand, since the majority of the experiment requires understanding and proper utilization of the STM32F4 discover board configurations and components which is doable within the given time frame of two weeks. The hardest challenge would be debugging problems with the ADC and the circuitry for the 7-segment display. Having done previous laboratories with electric circuit components, the programmers should be able to design a circuit for the 7-segment display.
+
 \section{Implementation}
 The design of the voltmeter was fairly complex and was composed of several modules.
 These modules included the \hyperref[userinput]{user input module} for processing user input via the
@@ -496,5 +557,19 @@ particularly high or low voltage readings were likely filtered out by the FIR fi
 		Trigger & \texttt{DAC\_TRIGGER\_NONE}\\\hline
 		Output Buffer & \texttt{DAC\_OUTPUTBUFFER\_ENABLE}\\\hline
 	\end{tabular}
+	
+	\newpage
+	\chapter{Theory References}
+	\begin{enumerate}
+		\item Shahshahani, Amirhoessein. “LabExperiment2 - Winter 2018 Handout.” MyCourses, 4 Feb. 2018, mycourses2.mcgill.ca/d2l/le/content/298546/viewContent/3715132/View.
+		\item Shahshahani, Amirhoessein. “uP Tutorial 2 – Winter 2018 Handout.” MyCourses, 4 Feb. 2018, mycourses2.mcgill.ca/d2l/le/content/298546/viewContent/3717077/View.
+		\item Zilic, Zeljko. “ECSE 426 Architecture and HW Lecture Handout.” MyCourses, 17 Feb. 2018, mycourses2.mcgill.ca/d2l/le/content/298546/viewContent/3630474/View.
+		\item Maxim Integrated. (2018). Tutorial 1080 Understanding SAR ADCs. [online] Available at: 
+https://www.maximintegrated.com/en/app-notes/index.mvp/id/1080 [Accessed 17 Feb. 2018].
+		\item Digi-Key. (2018). What does “open drain” mean. [online] Available at:\\
+https://forum.digikey.com/t/what-does-open-drain-mean/716 [Accessed 17 Feb. 2018].
+		\item eCircuit Center. (2018). Push-Pull Output Stage. [online] Available at:\\
+http://www.ecircuitcenter.com/Circuits/pushpull/pushpull.htm [Accessed 17 Feb. 2018].
+	\end{enumerate}
 \end{appendix}
 \end{document}
