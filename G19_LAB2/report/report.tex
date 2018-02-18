@@ -74,8 +74,20 @@ By having the programmers determine the system’s clock (SYSCLK), the ADC’s c
 The prescalers are parameters that configure the system’s multiple clocks, it is up to the designer to select the parameters. While there are multiple clocks, the important one to notice is the ADCCLK. The ADC’s clock determines the ADC’s sampling frequency.\\
 The total conversion time of the ADC is determined by solving is the following [3]:\\
 \[ Total Conversion Time = T_{Sampling} + T_{Conversion} \]\\
-One can find the conversion time (\(T_{Conversion}\)) by cross referencing the resolution to its respective amount of cycles within the time conversion table.\\
-PUT FIGURE HERE\\
+One can find the conversion time (\(T_{Conversion}\)) by cross referencing the resolution to its respective amount of cycles within the time conversion table[3].\\
+\begin{table}[h]\label{adcres}
+	\caption{Resolution Time Conversion Table}
+	\begin{center}
+		\begin{tabular}{|c|c|}
+		\hline
+		Resolution (bits) & Conversion Time (cycles)\\\hline
+		12 & 12 \\\hline
+		10  & 10 \\\hline
+		8  & 8 \\\hline
+		6  & 6 \\\hline
+	\end{tabular}
+	\end{center}
+\end{table}
 The sampling time (\(T_{Sampling}\)) is determined by the channel chosen for the ADC’s clock. Possible sample times are 3, 15, 28, 58, 84, 112, 144, and 480 cycles [3].\\
 Finally, one can derive the sampling frequency using the following equation:
 \[ Sampling Frequency (sps) = (1/ADCCLK * (Total Conversion time))^{-1} \]
@@ -83,12 +95,18 @@ By knowing the sampling frequency, a designer can determine the number of sample
 \subsection{ADC Component}
 There are many ways of implementing the ADC, but this report will go into detail about the theory for the ADC used in this experiment [4]. The voltages used across the ADC are of the following:\\
 \begin{itemize}
-  \item \(V_{IN}\): The voltage of the analog input;
-  \item \(V_{REF}\): Reference voltage fed to the ADC; 
-  \item \(V_{DAC}\): The DAC output which is forced to \(V_{REF}/2\):
+	\item \(V_{IN}\): The voltage of the analog input;
+	\item \(V_{REF}\): Reference voltage fed to the ADC; 
+	\item \(V_{DAC}\): The DAC output which is forced to \(V_{REF}/2\):
 \end{itemize}
 The N-Bit register is first configured midscale, in which the MSB is 1, and all other bits are zeros. The length of the bit string stored in the N-Bit register is the number of bits chosen for the ADC’s resolution.\\
-PUT FIGURE HERE\\
+\begin{figure}\label{adc}
+	\begin{center}
+		\includegraphics{adc.png}
+		\caption{SAR ADC Architecture [4]}
+	\end{center}
+\end{figure}
+
 The comparator component outputs a logic high (1) if VIN is greater than VDAC or a logic low (0) otherwise. If the comparator’s output is high, then the SAR (Successive-Approximation-Register) does not change the current bit in the N-bit register, which is by default a 1. The SAR then moves down the bit string, changes the current bit to a 1, and allows another comparison. If the comparator’s output is low, the SAR forces the current bit in the N-bit register to a 0 and moves down to the next bit, changes the current bit to a 1, then allows another comparison. This process is done until the N-bit digital word is available in the register. By the end, the ADC has successfully converted an analog input to a digital word. In the case of this experiment, since the resolution is of 8 bits, the ADC would create 8-bit digital words.
 \subsection{Push-Pull and Open-Drain Output Stages}
 The open-drain output pin is driven by a single transistor as opposed to two in the push-pull output stage. There are two states for the open-drain output pin. When the output device is off, the pin has a floating voltage and when it is on, the transistor pulls the input signal to ground [5].
