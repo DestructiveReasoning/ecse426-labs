@@ -64,15 +64,15 @@ The programmers faced challenges such as:
 \end{itemize}
 \section{Theory and Hypothesis}
 \subsection{System Clock}
-As mentioned in the second tutorial handout, the micro-controller has two sources of clock, an internal one and an external one which could be more accurate with the use of a crystal working at 8 MHz [2]. This clock determines the frequency of each other clock configured within the system. For this experiment, the RCC’s High Speed Clock pin is mapped to the external crystal.
+As mentioned in the second tutorial handout, the micro-controller has two sources of clock, an internal one and an external one which could be more accurate with the use of a crystal working at 8 MHz [2]. This clock determines the frequency of each other clock configured within the system. For this experiment, the RCC's High Speed Clock pin is mapped to the external crystal.
 \subsection{ADC Clock}
 Microcontrollers can detect binary signals, but real-world signals are not as simple, programmers must deal with voltages such as 2.72V, 3.33V, etc. as opposed to just a binary decision of 0 or 1V. The STM32F4 Discover board has an ADC feature, governed by a clock, that allows one to convert analog signals to digital. To understand the ADC feature, one must first comprehend its sampling frequency.
-By having the programmers determine the system’s clock (SYSCLK), the ADC’s clock is determined by the following procedure [3]:\\
-\[ AHBCLK = SYSCLK * AHBPRESC (/1, 2, …, 512)\\ \]
+By having the programmers determine the system's clock (SYSCLK), the ADC's clock is determined by the following procedure [3]:\\
+\[ AHBCLK = SYSCLK * AHBPRESC (/1, 2, ..., 512)\\ \]
 \[ APB2CLK = AHBCLK * APB2PRESC (/1, 2, 4, 8, 16)\\ \]
 \[ ADCCLK = APB2CLK * ADCPRESC (/2, 4, 6, 8)\\ \]
-The prescalers are parameters that configure the system’s multiple clocks, it is up to the designer to select the parameters. While there are multiple clocks, the important one to notice is the ADCCLK. The ADC’s clock determines the ADC’s sampling frequency.\\
-The total conversion time of the ADC is determined by solving is the following [3]:\\
+The prescalers are parameters that configure the system's multiple clocks, it is up to the designer to select the parameters. While there are multiple clocks, the important one to notice is the ADCCLK. The ADC's clock determines the ADC's sampling frequency.\\
+The total conversion time of the ADC is determined by solving the following equation [3]:\\
 \[ Total Conversion Time = T_{Sampling} + T_{Conversion} \]\\
 One can find the conversion time (\(T_{Conversion}\)) by cross referencing the resolution to its respective amount of cycles within the time conversion table[3].\\
 \begin{table}[h]\label{adcres}
@@ -88,7 +88,7 @@ One can find the conversion time (\(T_{Conversion}\)) by cross referencing the r
 	\end{tabular}
 	\end{center}
 \end{table}
-The sampling time (\(T_{Sampling}\)) is determined by the channel chosen for the ADC’s clock. Possible sample times are 3, 15, 28, 58, 84, 112, 144, and 480 cycles [3].\\
+The sampling time (\(T_{Sampling}\)) is determined by the channel chosen for the ADC's clock. Possible sample times are 3, 15, 28, 58, 84, 112, 144, and 480 cycles [3].\\
 Finally, one can derive the sampling frequency using the following equation:
 \[ Sampling Frequency (sps) = (1/ADCCLK * (Total Conversion time))^{-1} \]
 By knowing the sampling frequency, a designer can determine the number of samples obtained within a certain period and base their calculations for measurements from that.\\
@@ -99,7 +99,7 @@ There are many ways of implementing the ADC, but this report will go into detail
 	\item \(V_{REF}\): Reference voltage fed to the ADC; 
 	\item \(V_{DAC}\): The DAC output which is forced to \(V_{REF}/2\):
 \end{itemize}
-The N-Bit register is first configured midscale, in which the MSB is 1, and all other bits are zeros. The length of the bit string stored in the N-Bit register is the number of bits chosen for the ADC’s resolution.\\
+The N-Bit register is first configured midscale, in which the MSB is 1, and all other bits are zeros. The length of the bit string stored in the N-Bit register is the number of bits chosen for the ADC's resolution.\\
 \begin{figure}\label{adc}
 	\begin{center}
 		\includegraphics{adc.png}
@@ -107,7 +107,7 @@ The N-Bit register is first configured midscale, in which the MSB is 1, and all 
 	\end{center}
 \end{figure}
 
-The comparator component outputs a logic high (1) if VIN is greater than VDAC or a logic low (0) otherwise. If the comparator’s output is high, then the SAR (Successive-Approximation-Register) does not change the current bit in the N-bit register, which is by default a 1. The SAR then moves down the bit string, changes the current bit to a 1, and allows another comparison. If the comparator’s output is low, the SAR forces the current bit in the N-bit register to a 0 and moves down to the next bit, changes the current bit to a 1, then allows another comparison. This process is done until the N-bit digital word is available in the register. By the end, the ADC has successfully converted an analog input to a digital word. In the case of this experiment, since the resolution is of 8 bits, the ADC would create 8-bit digital words.
+The comparator component outputs a logic high (1) if VIN is greater than VDAC or a logic low (0) otherwise. If the comparator's output is high, then the SAR (Successive-Approximation-Register) does not change the current bit in the N-bit register, which is by default a 1. The SAR then moves down the bit string, changes the current bit to a 1, and allows for another comparison. If the comparator's output is low, the SAR forces the current bit in the N-bit register to a 0 and moves down to the next bit, changes the current bit to a 1, then allows for another comparison. This process is done until the N-bit digital word is available in the register. By the end, the ADC has successfully converted an analog input to a digital word. In the case of this experiment, since the resolution is of 8 bits, the ADC would create 8-bit digital words.
 \subsection{Push-Pull and Open-Drain Output Stages}
 The open-drain output pin is driven by a single transistor as opposed to two in the push-pull output stage. There are two states for the open-drain output pin. When the output device is off, the pin has a floating voltage and when it is on, the transistor pulls the input signal to ground [5].
 A push-pull output stage has two transistors. One transistor dissipates the current from the load to ground or a negative supply, and the other supplying current to the load from a power supply [6]. The outputs of open-drain and push-pull accept all ranges of voltages within 0 to 3.3V [2]. 
