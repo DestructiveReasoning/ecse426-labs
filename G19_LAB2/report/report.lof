@@ -1,6 +1,8 @@
-\contentsline {figure}{\numberline {1}{\ignorespaces Debouncing button presses}}{3}{figure.0.1}
-\contentsline {figure}{\numberline {2}{\ignorespaces Flow of ADC processing}}{5}{figure.0.2}
-\contentsline {figure}{\numberline {3}{\ignorespaces Selecting 7 segment display with transistors}}{7}{figure.0.3}
+\contentsline {figure}{\numberline {1}{\ignorespaces SAR ADC Architecture [4]}}{5}{figure.0.1}
+\contentsline {figure}{\numberline {2}{\ignorespaces Debouncing button presses}}{7}{figure.0.2}
+\contentsline {figure}{\numberline {3}{\ignorespaces Flow of ADC processing}}{9}{figure.0.3}
+\contentsline {figure}{\numberline {4}{\ignorespaces Selecting 7 segment display with transistors}}{11}{figure.0.4}
+\addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }

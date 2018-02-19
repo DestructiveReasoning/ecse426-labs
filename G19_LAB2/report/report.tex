@@ -4,7 +4,7 @@
 \usepackage{hyperref}
 \usepackage{color}
 \usepackage{tikz}
-\usepackage[siunitx]{circuitikz}
+\usepackage{circuitikz}
 \usetikzlibrary{shapes,arrows}
 \usepackage[margin=2cm]{geometry}
 
@@ -38,7 +38,14 @@ height=4em, text width=3cm, node distance=5cm]
 \listoftables
 \newpage
 \section{Abstract}
-The purpose of the experiment is for the programmers to get exposure to analog data acquisition and data conditioning. The programmers will get familiar with the STM32CubeMX application, the HAL software libraries in embedded C, specifically for analog to digital signal conversion on the STM32F4 Discovery board and the I/O interface for buttons, LEDs and a 7-segment display on the board. This report will explain how the programmers configured their project and implemented the task mentioned below. As well as explain the challenges faced, the solutions implemented, the data encountered while testing and debugging, and the conclusions made. PUT REFERENCE TO CONCLUSION HERE
+The purpose of the experiment is for the programmers to get exposure to analog data acquisition and
+data conditioning. The programmers will get familiar with the STM32CubeMX application, the HAL
+software libraries in embedded C, specifically for analog to digital signal conversion on the
+STM32F4 Discovery board and the I/O interface for buttons, LEDs and a 7-segment display on the
+board. Ultimately, with these tools, the programmers will demonstrate the design and construction of
+a voltmeter. This report will explain how the programmers configured their project and implemented the
+task mentioned below, as well as explain the challenges faced, the data
+encountered while testing and debugging, and the conclusions made. PUT REFERENCE TO CONCLUSION HERE
 \section{Problem Statement}
 The problem of the experiment is for the programmers to implement a solution for converting an analog signal to digital, filtering samples of the signal at a certain sampling frequency, calculating RMS, max, and min values, and finally displaying the calculated values on a 7-segment display with the help of a button for switching values. 
 As mentioned in the experiment 2 handout [1], solving the problem involves the following steps:
@@ -107,7 +114,15 @@ The N-Bit register is first configured midscale, in which the MSB is 1, and all 
 	\end{center}
 \end{figure}
 
-The comparator component outputs a logic high (1) if VIN is greater than VDAC or a logic low (0) otherwise. If the comparator's output is high, then the SAR (Successive-Approximation-Register) does not change the current bit in the N-bit register, which is by default a 1. The SAR then moves down the bit string, changes the current bit to a 1, and allows for another comparison. If the comparator's output is low, the SAR forces the current bit in the N-bit register to a 0 and moves down to the next bit, changes the current bit to a 1, then allows for another comparison. This process is done until the N-bit digital word is available in the register. By the end, the ADC has successfully converted an analog input to a digital word. In the case of this experiment, since the resolution is of 8 bits, the ADC would create 8-bit digital words.
+The comparator component outputs a logic high (1) if $V_{IN}$ is greater than $V_{DAC}$ or a logic low (0)
+otherwise. If the comparator's output is high, then the SAR (Successive-Approximation-Register) does
+not change the current bit in the N-bit register, which is by default a 1. The SAR then moves down
+the bit string, changes the current bit to a 1, and allows for another comparison. If the
+comparator's output is low, the SAR forces the current bit in the N-bit register to a 0 and moves
+down to the next bit, changes the current bit to a 1, then allows for another comparison. This
+process is done until the N-bit digital word is available in the register. By the end, the ADC has
+successfully converted an analog input to a digital word. In the case of this experiment, since the
+resolution is of 8 bits, the ADC would create 8-bit digital words.
 \subsection{Push-Pull and Open-Drain Output Stages}
 The open-drain output pin is driven by a single transistor as opposed to two in the push-pull output stage. There are two states for the open-drain output pin. When the output device is off, the pin has a floating voltage and when it is on, the transistor pulls the input signal to ground [5].
 A push-pull output stage has two transistors. One transistor dissipates the current from the load to ground or a negative supply, and the other supplying current to the load from a power supply [6]. The outputs of open-drain and push-pull accept all ranges of voltages within 0 to 3.3V [2]. 
@@ -462,6 +477,23 @@ was not enough after all). Finally, the minimum and maximum voltage readings rem
 stable over the 30 second intervals that were tested for each test input. This was expected as
 particularly high or low voltage readings were likely filtered out by the FIR filter.
 
+\newpage
+\section{Conclusion}
+It can be concluded that using the tools for data acquisition on the STM32F407 board can be used to
+create an effective voltmeter. The programmers demonstrated that via signalling analog to digital
+conversions at an appropriate frequency and using simple filtering techniques such as an FIR
+moving-average filter and RMS over a fixed sample size, the board can relay the voltage that it
+receives as input to the display with very high accuracy and precision. Implicit to this
+observation, it is clear that handling ADC conversions with interrupts allowed the CPU enough time
+to do the other operations that were programmed. That being said, configuring the ADC to make use of
+DMA would be a definite improvement: this would allow the retrieval of ADC data directly without
+intermediate control, which would save many clock cycles.\\\\
+Furthermore, the display mode implemented in this experiement was less-than-convenient. In order to
+keep RMS, minimum, and maximum computations over a running window of samples rather than discrete
+blocks, tradeoffs were made so as to save memory. Consequently, the RMS output could only be updated
+at 1Hz, while the minimum and maximum outputs could only be updated at 500mHz. In practice, it would
+be much more useful to have higher frequencies than these, say 5Hz, especially for the RMS
+reading.\\\\
 \newpage
 \begin{appendix}\label{appendices}
 	\chapter{Circular Lists}\label{circularlists}

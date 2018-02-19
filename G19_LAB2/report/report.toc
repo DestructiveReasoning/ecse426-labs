@@ -1,10 +1,21 @@
-\contentsline {section}{\numberline {0.1}Implementation}{2}{section.0.1}
-\contentsline {subsection}{\numberline {0.1.1}The User Input Module}{2}{subsection.0.1.1}
-\contentsline {subsection}{\numberline {0.1.2}The Data Acquisition Module}{2}{subsection.0.1.2}
-\contentsline {subsection}{\numberline {0.1.3}The Data Processing Module}{4}{subsection.0.1.3}
-\contentsline {section}{\numberline {0.2}The Output Module}{6}{section.0.2}
-\contentsline {section}{\numberline {0.3}Testing and Observations}{8}{section.0.3}
-\contentsline {chapter}{\numberline {A}Circular Lists}{10}{appendix.A}
-\contentsline {chapter}{\numberline {B}GPIO Configuration Parameters}{11}{appendix.B}
-\contentsline {chapter}{\numberline {C}ADC Configuration Settings}{12}{appendix.C}
-\contentsline {chapter}{\numberline {D}DAC Configuration Settings}{13}{appendix.D}
+\contentsline {section}{\numberline {0.1}Abstract}{3}{section.0.1}
+\contentsline {section}{\numberline {0.2}Problem Statement}{3}{section.0.2}
+\contentsline {section}{\numberline {0.3}Theory and Hypothesis}{4}{section.0.3}
+\contentsline {subsection}{\numberline {0.3.1}System Clock}{4}{subsection.0.3.1}
+\contentsline {subsection}{\numberline {0.3.2}ADC Clock}{4}{subsection.0.3.2}
+\contentsline {subsection}{\numberline {0.3.3}ADC Component}{5}{subsection.0.3.3}
+\contentsline {subsection}{\numberline {0.3.4}Push-Pull and Open-Drain Output Stages}{6}{subsection.0.3.4}
+\contentsline {subsection}{\numberline {0.3.5}Signal Filtering}{6}{subsection.0.3.5}
+\contentsline {subsection}{\numberline {0.3.6}Hypothesis}{6}{subsection.0.3.6}
+\contentsline {section}{\numberline {0.4}Implementation}{6}{section.0.4}
+\contentsline {subsection}{\numberline {0.4.1}The User Input Module}{6}{subsection.0.4.1}
+\contentsline {subsection}{\numberline {0.4.2}The Data Acquisition Module}{7}{subsection.0.4.2}
+\contentsline {subsection}{\numberline {0.4.3}The Data Processing Module}{9}{subsection.0.4.3}
+\contentsline {section}{\numberline {0.5}The Output Module}{11}{section.0.5}
+\contentsline {section}{\numberline {0.6}Testing and Observations}{12}{section.0.6}
+\contentsline {section}{\numberline {0.7}Conclusion}{14}{section.0.7}
+\contentsline {chapter}{\numberline {A}Circular Lists}{15}{appendix.A}
+\contentsline {chapter}{\numberline {B}GPIO Configuration Parameters}{16}{appendix.B}
+\contentsline {chapter}{\numberline {C}ADC Configuration Settings}{17}{appendix.C}
+\contentsline {chapter}{\numberline {D}DAC Configuration Settings}{18}{appendix.D}
+\contentsline {chapter}{\numberline {E}Theory References}{19}{appendix.E}
