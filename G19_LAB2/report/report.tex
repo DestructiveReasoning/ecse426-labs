@@ -1,7 +1,9 @@
 \documentclass[12pt]{report}
 \usepackage{amsmath,amssymb,amsfonts}
+\usepackage{courier}
 \usepackage{graphicx}
 \usepackage{hyperref}
+\usepackage{listings}
 \usepackage{color}
 \usepackage{tikz}
 \usepackage{circuitikz}
@@ -28,15 +30,20 @@ height=4em, text width=3cm, node distance=5cm]
 height=4em, text width=3cm, node distance=5cm]
 \tikzstyle{line} = [draw, -latex']
 \tikzstyle{cloud} = [draw, ellipse, fill=red!20, node distance=7cm, text centered, text width=2cm]
+\tikzstyle{label} = [draw, rectangle, text centered, text width = 3cm]
+
+\renewcommand*\thesection{\arabic{section}}
 
 \begin{document}
 \maketitle
+\pagenumbering{roman}
 \tableofcontents
-\let\clearpage\relax
+%\let\clearpage\relax
 \listoffigures
 \let\clearpage\relax
 \listoftables
 \newpage
+\pagenumbering{arabic}
 \section{Abstract}
 The purpose of the experiment is for the programmers to get exposure to analog data acquisition and
 data conditioning on the STM32F4 board. The programmers will get familiar with the STM32CubeMX application, the HAL
@@ -57,11 +64,19 @@ As mentioned in the experiment 2 handout [1], solving the problem involves the f
   \item Signal filtering;
   \item Making sense of data;
   \item Configuring the voltage display;
-  \item And a bonus step: Configure ADC with DMA (Direct Memory Access);
 \end{enumerate}
-For any specific details about the required steps, please refer to the experiment 2 handout [1].//
-The task had multiple challenges that the developers had to solve.//
-The programmers faced challenges with properly configuring the project with the STM32CubeMX application. One had to understand and correctly use the HAL libraries, specifically for its ADC and DAC functions. There were problems with configuring the SysTick properly, such as choosing the correct frequency. Furthermore, the developers had to implement a solution for the blue button to act as an interrupt as opposed to continuously reading values when it was held down as well as having had to map appropriate GPIO and ADC pins on the board to the code written in the Keil IDE. As for calculating the RMS, max, and min values, there had to a solution for calculating these values without storing 10 second records which provided increased difficulty. Finally, designing a circuit for the 7-segment display on the bread board without damaging the display or the microcontroller proved to be a challenge to the programmers.
+For any specific details about the required steps, please refer to the experiment 2 handout [1].\\
+The task had multiple challenges that the developers had to solve.
+Firstly, the programmers faced challenges with properly configuring the project with the STM32CubeMX
+application. One had to understand and correctly use the HAL libraries, specifically for its ADC and
+DAC functions. There were problems with configuring the SysTick properly, such as choosing the
+correct frequency. Furthermore, the developers had to implement a solution for the blue button to
+act as an interrupt as opposed to continuously reading values when it was held down as well as
+having had to map appropriate GPIO and ADC pins on the board to the code written in the Keil IDE. As
+for calculating the RMS, max, and min values, there had to a solution for calculating these values
+without storing 10 second records which provided increased difficulty. Finally, designing a circuit
+for the 7-segment display on the bread board without damaging the display or the microcontroller
+proved to be a challenge to the programmers.
 \section{Theory and Hypothesis}
 \subsection{System Clock}
 As mentioned in the second tutorial handout, the micro-controller has two sources of clock, an internal one and an external one which could be more accurate with the use of a crystal working at 8 MHz [2]. This clock determines the frequency of each other clock configured within the system. For this experiment, the RCC's High Speed Clock pin is mapped to the external crystal.
@@ -93,11 +108,11 @@ Finally, one can derive the sampling frequency using the following equation:
 \[ Sampling Frequency (sps) = (1/ADCCLK * (Total Conversion time))^{-1} \]
 By knowing the sampling frequency, a designer can determine the number of samples obtained within a certain period and base their calculations for measurements from that.\\
 \subsection{ADC Component}
-There are many ways of implementing the ADC, but this report will go into detail about the theory for the ADC used in this experiment [4]. The voltages used across the ADC are of the following:\\
+There are many ways of implementing the ADC, but this report will go into detail about the theory
+for the ADC used in this experiment [4]. The voltages used across the ADC include the following:\\
 \begin{itemize}
 	\item \(V_{IN}\): The voltage of the analog input;
 	\item \(V_{REF}\): Reference voltage fed to the ADC; 
-	\item \(V_{DAC}\): The DAC output which is forced to \(V_{REF}/2\):
 \end{itemize}
 The N-Bit register is first configured midscale, in which the MSB is 1, and all other bits are zeros. The length of the bit string stored in the N-Bit register is the number of bits chosen for the ADC's resolution.\\
 \begin{figure}\label{adc}
@@ -141,7 +156,45 @@ the modules. Since the configuration parameters of the \texttt{SysTick} timer we
 influenced by the modules described above, they will be explained independently in the sections
 following where the design decisions were made. Specific details concerning the configuration
 parameters of the \hyperref[appendixgpio]{GPIO pins}, the \hyperref[appendixadc]{ADC}, and the
-\hyperref[appendixdac]{DAC} may be perused in the appendices.
+\hyperref[appendixdac]{DAC} may be perused in the appendices. Furthermore,
+\hyperref[mammoth]{Appendix E} contains all GPIO configuration code generated by the HAL Cube MX
+software for this project.
+\subsection{High Level System Architecture}
+The figure below shows how the major components of the system were organized.\\\\
+\begin{figure}\label{systemarc}[h]
+	\begin{center}
+		\begin{tikzpicture}[node distance = 2cm, auto, scale=0.85, transform shape]
+			\node [block] (dac) {DAC};
+			\node [block, below of=dac, node distance=2cm] (volts) {Arbitrary Voltage Source};
+			\node [block, right of=dac] (adc) {ADC};
+			\node [cloud, below of=adc, node distance=5cm] (systick) {SysTick Timer};
+			\node [block, right of=adc] (filter) {FIR Filter};
+			\node [block, below of=filter, node distance=2cm] (process) {RMS, Min, Max Calculator};
+			\node [decision, right of=process, node distance=4cm] (select) {Display Mode Selector};
+			\node [cloud, right of=select, node distance=4cm] (button) {Push Button};
+			\node [block, below of=select, node distance=3cm] (display) {Display};
+			\node [label, above of=adc] (adclabel) {Data\\Acquisition\\Module};
+			\node [label, above of=filter] (filterlabel) {Data\\Processing\\Module};
+			\node [label, above of=select, node distance=4.25cm] (displaylabel) {Output\\Module};
+			\node [label, above of=button, node distance=4.25cm] (buttonlabel) {User Input\\Module};
+			\path [line] (dac) -- node {Analog} (adc);
+			\path [line] (volts) -- (adc);
+			\path [line, dashed] (systick) -- (adc);
+			\path [line] (adc) -- (filter);
+			\path [line] (filter) -- (process);
+			\path [line] (process) -- (select);
+			\path [line] (select) -- (display);
+			\path [line,dashed] (button) -- (select);
+			\path [line,dashed] (systick) -- (select);
+			\path [line,dashed] (systick) -- (display);
+			\path [line,dashed] (systick) -- (process);
+		\end{tikzpicture}
+		\caption{System Architecture}
+	\end{center}
+\end{figure}
+Figure 2 shows the overall architecture of the voltmeter system, organized in columns by the modules
+that each component belong to. The remainder of this section will discuss in more detail how each of
+these modules were designed.
 \subsection{The User Input Module}\label{userinput}
 One of the requirements of the voltmeter was to provide three display modes to the user: a display
 of the RMS voltage, and a display for each of minimum and maximum voltage updated within the past
@@ -157,7 +210,7 @@ several interrupts. This could have been do to button bouncing, or possibly the 
 seems like a short \textit{click} to a human actually goes over several clock cycles of the
 processor. To prevent this from occuring, it was decided to enforce a time delay between consecutive
 button press handling routines, and this was achieved using the \texttt{SysTick} timer. The process
-is shown in \hyperref[buttonflow]{Figure 1}.\\\\
+is shown in \hyperref[buttonflow]{Figure 3}.\\\\
 \begin{figure}\label{buttonflow}
 	\begin{center}
 		\begin{tikzpicture}[node distance = 2cm, auto, scale=0.7, transform shape]
@@ -246,27 +299,29 @@ was required, so the \texttt{SysTick} interrupts were used to time the ADC conve
 required to implement a prescaler in the \texttt{SysTick\_Handler()} function in order to sample at
 50Hz.
 \begin{figure}[h]\label{adcflow}
-	\begin{tikzpicture}[node distance=2cm, auto]
-		\node [cloud, node distance=7cm] (systick) {SysTick Interrupt};
-		\node [decision, right of=systick,node distance=7cm] (ifcount) {Is counter a multiple of 4?};
-		\node [block, right of=ifcount] (nothing) {Do nothing};
-		\node [goal, below of=ifcount, text width=3.5cm, node distance=3.5cm] (startadc) {\texttt{HAL\_ADC\_StartIT()}};
-		\node [block, left of=startadc, text width=3.5cm] (irqhandler) {\texttt{ADC\_IRQHandler()}};
-		\node [block, below of=irqhandler, text width=4.1cm, node distance=3cm] (haladc)
-		{\texttt{HAL\_ADC\_IRQHandler()}};
-		\node [block, right of=haladc, text width=3.8cm] (conv) {\texttt{ConvCpltCallback()}};
-		\node [goal, below of=conv, node distance=3cm] (processadc) {Process ADC reading};
-		\path [line, dashed] (systick) -- node {Increment counter} (ifcount);
-		\path [line] (ifcount) -- node {No} (nothing);
-		\path [line] (ifcount) -- node {Yes} (startadc);
-		\path [line, dashed] (startadc) -- (irqhandler);
-		\path [line] (irqhandler) -- (haladc);
-		\path [line, dashed] (haladc) -- (conv);
-		\path [line] (conv) -- (processadc);
-	\end{tikzpicture}
-	\caption{Flow of ADC processing}
+	\begin{center}
+		\begin{tikzpicture}[node distance=2cm, auto, scale=0.8, transform shape]
+			\node [cloud, node distance=7cm] (systick) {SysTick Interrupt};
+			\node [decision, right of=systick,node distance=7cm] (ifcount) {Is counter a multiple of 4?};
+			\node [block, right of=ifcount] (nothing) {Do nothing};
+			\node [goal, below of=ifcount, text width=4cm, node distance=4cm] (startadc) {\texttt{HAL\_ADC\_StartIT()}};
+			\node [block, left of=startadc, text width=4cm] (irqhandler) {\texttt{ADC\_IRQHandler()}};
+			\node [block, below of=irqhandler, text width=4.7cm, node distance=3cm] (haladc)
+			{\texttt{HAL\_ADC\_IRQHandler()}};
+			\node [block, right of=haladc, text width=4.5cm, node distance=7cm] (conv) {\texttt{ConvCpltCallback()}};
+			\node [goal, below of=conv, node distance=3cm] (processadc) {Process ADC reading};
+			\path [line, dashed] (systick) -- node {Increment counter} (ifcount);
+			\path [line] (ifcount) -- node {No} (nothing);
+			\path [line] (ifcount) -- node {Yes} (startadc);
+			\path [line, dashed] (startadc) -- (irqhandler);
+			\path [line] (irqhandler) -- (haladc);
+			\path [line, dashed] (haladc) -- (conv);
+			\path [line] (conv) -- (processadc);
+		\end{tikzpicture}
+		\caption{Flow of ADC processing}
+	\end{center}
 \end{figure}
-The process of handling ADC conversions is shown in \hyperref[adcflow]{Figure 2}. The
+The process of handling ADC conversions is shown in \hyperref[adcflow]{Figure 4}. The
 \texttt{SysTick\_Handler()} maintains a \texttt{counter} and increments it at every \texttt{SysTick}
 interrupt, that is to say, at 200Hz. Since ADC conversions were to be taken at 50Hz, they had to be
 triggered at a rate four times less frequent than \texttt{SysTick}. Thus, the
@@ -277,7 +332,7 @@ ADC conversions at 50Hz. This was accomplished by starting the ADC conversion wh
 \subsection{The Data Processing Module}\label{dataproc}
 Given the digital readings from the ADC, the next step was to filter them to reduce noise and to
 then translate the readings into meaningful values. These steps were carried out in the
-\texttt{ConvCpltCallback()} function (see \hyperref[adcflow]{Figure 2}). In order to reduce noise,
+\texttt{ConvCpltCallback()} function (see \hyperref[adcflow]{Figure 4}). In order to reduce noise,
 the digital readings
 were passed through a $4^{th}$ order FIR filter, which effectively output the average over the past
 5 inputs. A $9^{th}$ order filter was experimented (which effetively output the average over the
@@ -470,7 +525,6 @@ was not enough after all). Finally, the minimum and maximum voltage readings rem
 stable over the 30 second intervals that were tested for each test input. This was expected as
 particularly high or low voltage readings were likely filtered out by the FIR filter.
 
-\newpage
 \section{Conclusion}
 It can be concluded that using the tools for data acquisition on the STM32F407 board can be used to
 create an effective voltmeter. The programmers demonstrated that via signalling analog to digital
@@ -600,6 +654,130 @@ reading.\\\\
 		Trigger & \texttt{DAC\_TRIGGER\_NONE}\\\hline
 		Output Buffer & \texttt{DAC\_OUTPUTBUFFER\_ENABLE}\\\hline
 	\end{tabular}
+
+	\newpage
+	\chapter{HAL Cube MX Autogenerated Code}\label{mammoth}
+	\begin{lstlisting}[basicstyle=\scriptsize\ttfamily]
+GPIO_InitTypeDef GPIO_InitStruct;
+
+/* GPIO Ports Clock Enable */
+__HAL_RCC_GPIOE_CLK_ENABLE();
+__HAL_RCC_GPIOC_CLK_ENABLE();
+__HAL_RCC_GPIOH_CLK_ENABLE();
+__HAL_RCC_GPIOA_CLK_ENABLE();
+__HAL_RCC_GPIOB_CLK_ENABLE();
+__HAL_RCC_GPIOD_CLK_ENABLE();
+
+/*Configure GPIO pin Output Level */
+HAL_GPIO_WritePin(CS_I2C_SPI_GPIO_Port, CS_I2C_SPI_Pin, GPIO_PIN_RESET);
+
+/*Configure GPIO pin Output Level */
+HAL_GPIO_WritePin(OTG_FS_PowerSwitchOn_GPIO_Port, OTG_FS_PowerSwitchOn_Pin, GPIO_PIN_SET);
+
+/*Configure GPIO pin Output Level */
+HAL_GPIO_WritePin(GPIOD, LD4_Pin|LD3_Pin|LD5_Pin|LD6_Pin 
+		|Audio_RST_Pin, GPIO_PIN_RESET);
+
+HAL_GPIO_WritePin(GPIOE, GPIO_PIN_7|GPIO_PIN_11|GPIO_PIN_10|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
+HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12|GPIO_PIN_13, GPIO_PIN_RESET);
+HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_RESET);
+
+/*Configure GPIO pin : CS_I2C_SPI_Pin */
+GPIO_InitStruct.Pin = CS_I2C_SPI_Pin;
+GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+GPIO_InitStruct.Pull = GPIO_NOPULL;
+GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+HAL_GPIO_Init(CS_I2C_SPI_GPIO_Port, &GPIO_InitStruct);
+
+/*Configure GPIO pin : OTG_FS_PowerSwitchOn_Pin */
+GPIO_InitStruct.Pin = OTG_FS_PowerSwitchOn_Pin;
+GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+GPIO_InitStruct.Pull = GPIO_NOPULL;
+GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+HAL_GPIO_Init(OTG_FS_PowerSwitchOn_GPIO_Port, &GPIO_InitStruct);
+
+/*Configure GPIO pin : PDM_OUT_Pin */
+GPIO_InitStruct.Pin = PDM_OUT_Pin;
+GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+GPIO_InitStruct.Pull = GPIO_NOPULL;
+GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+HAL_GPIO_Init(PDM_OUT_GPIO_Port, &GPIO_InitStruct);
+
+/*Configure GPIO pin : PA0 */
+GPIO_InitStruct.Pin = GPIO_PIN_0;
+GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+GPIO_InitStruct.Pull = GPIO_NOPULL;
+HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+/*Configure GPIO pins : SPI1_SCK_Pin SPI1_MISO_Pin SPI1_MOSI_Pin */
+GPIO_InitStruct.Pin = SPI1_SCK_Pin|SPI1_MISO_Pin|SPI1_MOSI_Pin;
+GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+GPIO_InitStruct.Pull = GPIO_NOPULL;
+GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
+HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+/*Configure GPIO pin : BOOT1_Pin */
+GPIO_InitStruct.Pin = BOOT1_Pin;
+GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+GPIO_InitStruct.Pull = GPIO_NOPULL;
+HAL_GPIO_Init(BOOT1_GPIO_Port, &GPIO_InitStruct);
+
+/*Configure GPIO pin : CLK_IN_Pin */
+GPIO_InitStruct.Pin = CLK_IN_Pin;
+GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+GPIO_InitStruct.Pull = GPIO_NOPULL;
+GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+HAL_GPIO_Init(CLK_IN_GPIO_Port, &GPIO_InitStruct);
+
+/*Configure GPIO pins : I2S3_MCK_Pin I2S3_SCK_Pin I2S3_SD_Pin */
+GPIO_InitStruct.Pin = I2S3_MCK_Pin|I2S3_SCK_Pin|I2S3_SD_Pin;
+GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+GPIO_InitStruct.Pull = GPIO_NOPULL;
+GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+GPIO_InitStruct.Alternate = GPIO_AF6_SPI3;
+HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+/*Configure GPIO pin : VBUS_FS_Pin */
+GPIO_InitStruct.Pin = VBUS_FS_Pin;
+GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+GPIO_InitStruct.Pull = GPIO_NOPULL;
+HAL_GPIO_Init(VBUS_FS_GPIO_Port, &GPIO_InitStruct);
+
+/*Configure GPIO pins : OTG_FS_ID_Pin OTG_FS_DM_Pin OTG_FS_DP_Pin */
+GPIO_InitStruct.Pin = OTG_FS_ID_Pin|OTG_FS_DM_Pin|OTG_FS_DP_Pin;
+GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+GPIO_InitStruct.Pull = GPIO_NOPULL;
+GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+GPIO_InitStruct.Alternate = GPIO_AF10_OTG_FS;
+HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+/*Configure GPIO pin : OTG_FS_OverCurrent_Pin */
+GPIO_InitStruct.Pin = OTG_FS_OverCurrent_Pin;
+GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+GPIO_InitStruct.Pull = GPIO_NOPULL;
+HAL_GPIO_Init(OTG_FS_OverCurrent_GPIO_Port, &GPIO_InitStruct);
+
+/*Configure GPIO pins : Audio_SCL_Pin Audio_SDA_Pin */
+GPIO_InitStruct.Pin = Audio_SCL_Pin|Audio_SDA_Pin;
+GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+GPIO_InitStruct.Pull = GPIO_PULLUP;
+GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
+HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+/*Configure GPIO pin : MEMS_INT2_Pin */
+GPIO_InitStruct.Pin = MEMS_INT2_Pin;
+GPIO_InitStruct.Mode = GPIO_MODE_EVT_RISING;
+GPIO_InitStruct.Pull = GPIO_NOPULL;
+HAL_GPIO_Init(MEMS_INT2_GPIO_Port, &GPIO_InitStruct);
+
+/* EXTI interrupt init*/
+HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+	\end{lstlisting}
 	
 	\newpage
 	\chapter{Theory References}
