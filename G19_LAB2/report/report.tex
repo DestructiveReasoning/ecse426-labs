@@ -39,15 +39,15 @@ height=4em, text width=3cm, node distance=5cm]
 \newpage
 \section{Abstract}
 The purpose of the experiment is for the programmers to get exposure to analog data acquisition and
-data conditioning. The programmers will get familiar with the STM32CubeMX application, the HAL
+data conditioning on the STM32F4 board. The programmers will get familiar with the STM32CubeMX application, the HAL
 software libraries in embedded C, specifically for analog to digital signal conversion on the
 STM32F4 Discovery board and the I/O interface for buttons, LEDs and a 7-segment display on the
 board. Ultimately, with these tools, the programmers will demonstrate the design and construction of
 a voltmeter. This report will explain how the programmers configured their project and implemented the
 task mentioned below, as well as explain the challenges faced, the data
-encountered while testing and debugging, and the conclusions made. PUT REFERENCE TO CONCLUSION HERE
+encountered while testing and debugging, and the conclusions made. By the end of the report, the reader will have understood how the data acquisition and conversion tools available on the STM32F4 board could be used to create an effective voltemeter.
 \section{Problem Statement}
-The problem of the experiment is for the programmers to implement a solution for converting an analog signal to digital, filtering samples of the signal at a certain sampling frequency, calculating RMS, max, and min values, and finally displaying the calculated values on a 7-segment display with the help of a button for switching values. 
+The problem of the experiment is for the programmers to implement a solution for converting an analog signal to digital, filtering samples of the signal at a certain sampling frequency, calculating RMS, max, and min values, and finally displaying the calculated values on a 7-segment display with the help of a button for switching values. With the final product being a working and effective voltemeter.
 As mentioned in the experiment 2 handout [1], solving the problem involves the following steps:
 \begin{enumerate}
   \item Setting up the blue button;
@@ -59,16 +59,9 @@ As mentioned in the experiment 2 handout [1], solving the problem involves the f
   \item Configuring the voltage display;
   \item And a bonus step: Configure ADC with DMA (Direct Memory Access);
 \end{enumerate}
-For any specific details about the required steps, please refer to the experiment 2 handout [1].
-The programmers faced challenges such as: 
-\begin{itemize}
-  \item Properly setting up the project with STM32CubeMX, and the HAL libraries;
-  \item Setting up the SysTick configuration;
-  \item Implementing a solution for the blue button to act as an interrupt as opposed to continuously reading values when it is held down; 
-  \item Mapping appropriate ADC and GPIO pins on the board and when writing the code;
-  \item Implementing a solution for calculating the RMS, max, and min values without storing 10 second records;
-  \item And designing a circuit for the 7-segment display on the bread board without damaging the display or the microcontroller board;
-\end{itemize}
+For any specific details about the required steps, please refer to the experiment 2 handout [1].//
+The task had multiple challenges that the developers had to solve.//
+The programmers faced challenges with properly configuring the project with the STM32CubeMX application. One had to understand and correctly use the HAL libraries, specifically for its ADC and DAC functions. There were problems with configuring the SysTick properly, such as choosing the correct frequency. Furthermore, the developers had to implement a solution for the blue button to act as an interrupt as opposed to continuously reading values when it was held down as well as having had to map appropriate GPIO and ADC pins on the board to the code written in the Keil IDE. As for calculating the RMS, max, and min values, there had to a solution for calculating these values without storing 10 second records which provided increased difficulty. Finally, designing a circuit for the 7-segment display on the bread board without damaging the display or the microcontroller proved to be a challenge to the programmers.
 \section{Theory and Hypothesis}
 \subsection{System Clock}
 As mentioned in the second tutorial handout, the micro-controller has two sources of clock, an internal one and an external one which could be more accurate with the use of a crystal working at 8 MHz [2]. This clock determines the frequency of each other clock configured within the system. For this experiment, the RCC's High Speed Clock pin is mapped to the external crystal.
