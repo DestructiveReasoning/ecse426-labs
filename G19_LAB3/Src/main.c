@@ -50,7 +50,7 @@ TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 
 int counter = 0;
-int mode = 0;
+int pmode = 3;
 
 #define PWM_PERIOD 168
 
@@ -68,7 +68,7 @@ static void MX_TIM3_Init(void);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
-float duty_cycles[] = {0.25, 0.5, 0.75, 1.0};
+float duty_cycles[] = {0.95, 0.5, 0.75, 1.0};
                                 
 
 /* USER CODE BEGIN PFP */
@@ -122,9 +122,12 @@ int main(void)
   while (1)
   {
 		TIM_OC_InitTypeDef sConfigOC;
+		if(GPIOA->IDR & GPIO_PIN_0) {
+			pmode = (pmode + 1) % 4;
+		}
   /* USER CODE END WHILE */
-		if(mode != last_mode) {
-			switch(mode) {
+		if(counter != last_mode) {
+			switch(pmode) {
 				case 0:
 					HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
@@ -150,10 +153,19 @@ int main(void)
 					HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_SET);
 					break;
 			}
-			sConfigOC.Pulse = duty_cycles[mode] * PWM_PERIOD;
-			HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1);
+			sConfigOC.Pulse = duty_cycles[pmode] * PWM_PERIOD;
+			sConfigOC.OCMode = TIM_OCMODE_PWM1;
+			sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+			sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+			if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+			{
+				_Error_Handler(__FILE__, __LINE__);
+			}
+
+			HAL_TIM_MspPostInit(&htim3);
+			HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 		}
-		last_mode = mode;
+		last_mode = counter;
   /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -318,7 +330,6 @@ static void MX_TIM3_Init(void)
   }
 
   HAL_TIM_MspPostInit(&htim3);
-
 }
 
 /** Configure pins as 
