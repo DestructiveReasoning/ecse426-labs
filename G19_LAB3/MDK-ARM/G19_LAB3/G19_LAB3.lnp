@@ -1,0 +1,26 @@
+--cpu Cortex-M4.fp
+"g19_lab3\startup_stm32f407xx.o"
+"g19_lab3\system_stm32f4xx.o"
+"g19_lab3\stm32f4xx_it.o"
+"g19_lab3\main.o"
+"g19_lab3\stm32f4xx_hal_msp.o"
+"g19_lab3\stm32f4xx_hal_flash_ex.o"
+"g19_lab3\stm32f4xx_hal_adc_ex.o"
+"g19_lab3\stm32f4xx_hal_rcc_ex.o"
+"g19_lab3\stm32f4xx_hal_dma.o"
+"g19_lab3\stm32f4xx_hal_pwr.o"
+"g19_lab3\stm32f4xx_hal_pwr_ex.o"
+"g19_lab3\stm32f4xx_hal_cortex.o"
+"g19_lab3\stm32f4xx_hal_flash_ramfunc.o"
+"g19_lab3\stm32f4xx_hal_tim_ex.o"
+"g19_lab3\stm32f4xx_hal_dma_ex.o"
+"g19_lab3\stm32f4xx_hal_flash.o"
+"g19_lab3\stm32f4xx_hal_gpio.o"
+"g19_lab3\stm32f4xx_hal_tim.o"
+"g19_lab3\stm32f4xx_hal_rcc.o"
+"g19_lab3\stm32f4xx_hal_adc.o"
+"g19_lab3\stm32f4xx_hal.o"
+--library_type=microlib --strict --scatter "G19_LAB3\G19_LAB3.sct"
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "G19_LAB3.map" -o G19_LAB3\G19_LAB3.axf

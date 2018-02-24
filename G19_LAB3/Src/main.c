@@ -49,6 +49,11 @@ ADC_HandleTypeDef hadc1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 
+int counter = 0;
+int mode = 0;
+
+#define PWM_PERIOD 168
+
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
@@ -62,6 +67,8 @@ static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+
+float duty_cycles[] = {0.25, 0.5, 0.75, 1.0};
                                 
 
 /* USER CODE BEGIN PFP */
@@ -75,6 +82,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 int main(void)
 {
+	int last_mode = 0;
 
   /* USER CODE BEGIN 1 */
 
@@ -101,6 +109,9 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM2_Init();
   MX_TIM3_Init();
+	
+	HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 
   /* USER CODE BEGIN 2 */
 
@@ -110,10 +121,40 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+		TIM_OC_InitTypeDef sConfigOC;
   /* USER CODE END WHILE */
-
+		if(mode != last_mode) {
+			switch(mode) {
+				case 0:
+					HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
+					HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
+					break;
+				case 1:
+					HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
+					HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
+					break;
+				case 2:
+					HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_SET);
+					HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
+					break;
+				default:
+					HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_SET);
+					break;
+			}
+			sConfigOC.Pulse = duty_cycles[mode] * PWM_PERIOD;
+			HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1);
+		}
+		last_mode = mode;
   /* USER CODE BEGIN 3 */
-
   }
   /* USER CODE END 3 */
 
@@ -253,7 +294,7 @@ static void MX_TIM3_Init(void)
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 0;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 0;
+  htim3.Init.Period = PWM_PERIOD;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
   {
@@ -268,7 +309,7 @@ static void MX_TIM3_Init(void)
   }
 
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
+  sConfigOC.Pulse = 0.5 * PWM_PERIOD;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
@@ -433,7 +474,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_EVT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(MEMS_INT2_GPIO_Port, &GPIO_InitStruct);
+		
+	/*Configure GPIO pin : PA0 */
+	GPIO_InitStruct.Pin = GPIO_PIN_0;
+	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+	HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 }
 
 /* USER CODE BEGIN 4 */
