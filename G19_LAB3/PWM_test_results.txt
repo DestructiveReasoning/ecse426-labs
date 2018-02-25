@@ -1,0 +1,33 @@
+More capacitance 
+
+
+Resistor scales everything?
+Input Pk-Pk Voltage: 3V
+
+Resistor: Golden - Brown - Red, Capacitor: 20uF
+Duty Cycle: 0.05
+Output Mean Voltage: 1.62 V
+
+Duty Cycle: 0.95
+Output Mean Voltage: 2.15 V
+
+
+Resistor: Golden - Brown - Red, Capacitor: 5uF
+Duty Cycle: 0.05
+Output Mean Voltage: 1.60 V
+
+Duty Cycle: 0.95
+Output Mean Voltage: 2.14 V
+
+
+Resistor: Brown - White - Red , Capacitor: 20uF
+Duty Cycle: 0.05
+Output Mean Voltage: 0.364 V
+
+Duty Cycle: 0.95
+Output Mean Voltage: 1.92 V
+
+Duty Cycle: 1.00
+Output Mean Voltage: 1.92 V
+
+
