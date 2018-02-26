@@ -157,7 +157,7 @@ int main(void)
 			}
 			if(GPIOB->IDR & GPIO_PIN_8) reading = keypad_matrix[col][0];
 			else if(GPIOB->IDR & GPIO_PIN_7) reading = keypad_matrix[col][1];
-//			else if(GPIOB->IDR & GPIO_PIN_5) reading = keypad_matrix[col][2];
+			else if(GPIOB->IDR & GPIO_PIN_5) reading = keypad_matrix[col][2];
 			else if (GPIOB->IDR & GPIO_PIN_3) reading = keypad_matrix[col][3];
 			if(reading >= 0) break;
 		}
@@ -676,7 +676,7 @@ static void MX_GPIO_Init(void)
 	HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
 	/*Configure keypad row pins*/
-	GPIO_InitStruct.Pin = GPIO_PIN_9|GPIO_PIN_8|GPIO_PIN_7|GPIO_PIN_6;
+	GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_7|GPIO_PIN_5|GPIO_PIN_3;
 	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
 	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
