@@ -50,7 +50,7 @@ TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 
 int counter = 0;
-int pmode = 3;
+int pmode = 0;
 
 #define PWM_PERIOD 168
 
@@ -68,7 +68,7 @@ static void MX_TIM3_Init(void);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
-float duty_cycles[] = {0.95, 0.5, 0.75, 1.0};
+float duty_cycles[] = {0.25, 0.5, 0.75, 1.0};
                                 
 
 /* USER CODE BEGIN PFP */
@@ -122,10 +122,6 @@ int main(void)
   while (1)
   {
 		TIM_OC_InitTypeDef sConfigOC;
-		if(GPIOA->IDR & GPIO_PIN_0) {
-			pmode = (pmode + 1) % 4;
-		}
-  /* USER CODE END WHILE */
 		if(counter != last_mode) {
 			switch(pmode) {
 				case 0:

@@ -45,6 +45,7 @@ extern TIM_HandleTypeDef htim3;
 
 extern int counter;
 extern int pmode;
+int last_button_press = -1;
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
@@ -66,13 +67,13 @@ void SysTick_Handler(void)
   /* USER CODE END SysTick_IRQn 1 */
 }
 
-//void EXTI0_IRQHandler(void) {
-//	HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
-//	if(counter % 500 == 0) {
-//		pmode = (pmode + 1) % 4;
-//		printf("BUTTON PRESSED\n");
-//	}
-//}
+void EXTI0_IRQHandler(void) {
+	HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
+	if(last_button_press == -1 || counter - last_button_press > 500) {
+		pmode = (pmode + 1) % 4;
+		last_button_press = counter;
+	}
+}
 
 /******************************************************************************/
 /* STM32F4xx Peripheral Interrupt Handlers                                    */

@@ -1,4 +1,4 @@
---cpu Cortex-M4.fp
+--cpu=Cortex-M4.fp
 "g19_lab3\startup_stm32f407xx.o"
 "g19_lab3\system_stm32f4xx.o"
 "g19_lab3\stm32f4xx_it.o"
@@ -21,6 +21,6 @@
 "g19_lab3\stm32f4xx_hal_adc.o"
 "g19_lab3\stm32f4xx_hal.o"
 --library_type=microlib --strict --scatter "G19_LAB3\G19_LAB3.sct"
---summary_stderr --info summarysizes --map --xref --callgraph --symbols
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
 --list "G19_LAB3.map" -o G19_LAB3\G19_LAB3.axf
