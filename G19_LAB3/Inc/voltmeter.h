@@ -42,7 +42,7 @@
 #define KEY_R1	GPIOB, GPIO_PIN_8
 #define KEY_R2	GPIOB, GPIO_PIN_7
 #define KEY_R3	GPIOB, GPIO_PIN_5
-#define KEY_R4	GPIOB, GPIO_PIN_3
+#define KEY_R4	GPIOD, GPIO_PIN_7
 
 void FIR_C(int input, float *output);
 void plot_point(float, float *);

@@ -42,6 +42,7 @@
 
 #define STAR 11
 #define HASH 12
+#define SYSTICK_FREQUENCY 1000
 
 /* USER CODE BEGIN Includes */
 
@@ -57,9 +58,9 @@ int counter = 0;
 int pmode = 0;
 int target = 1;
 
-enum State {ReadKeys, Update};
+enum State {FirstKey, SecondKey, Wait, Sleep};
 
-enum State state = Update;
+enum State state = FirstKey;
 int col = 0;
 
 #define PWM_PERIOD 168
@@ -86,36 +87,18 @@ float duty_cycles[] = {0.25, 0.5, 0.75, 1.0};
 
 /* USER CODE END PFP */
 
-/* USER CODE BEGIN 0 */
 // for storing adc value
 uint8_t adc_value;
-/* USER CODE END 0 */
+
+int holding = 0;
+int hold_count = 0;
 
 int main(void)
 {
 	int last_mode = 0;
-
-	/* USER CODE BEGIN 1 */
-
-	/* USER CODE END 1 */
-
-	/* MCU Configuration----------------------------------------------------------*/
-
-	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
 	HAL_Init();
-
-	/* USER CODE BEGIN Init */
-
-	/* USER CODE END Init */
-
-	/* Configure the system clock */
 	SystemClock_Config();
 
-	/* USER CODE BEGIN SysInit */
-
-	/* USER CODE END SysInit */
-
-	/* Initialize all configured peripherals */
 	MX_GPIO_Init();
 	MX_ADC1_Init();
 	MX_TIM2_Init();
@@ -124,7 +107,6 @@ int main(void)
 	HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 
-	/* USER CODE BEGIN 2 */
 	// Start TIM2 Timer
 	HAL_TIM_Base_Start(&htim2);
 	// Start ADC
@@ -132,9 +114,11 @@ int main(void)
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
-	/* USER CODE BEGIN WHILE */
 	int keypad_matrix[3][4] = {1,4,7,STAR,2,5,8,0,3,6,9,HASH};
-	int target = 1;
+	int target = 1; //For keypad debugging
+	float temp_voltage = 0.0;
+	float target_voltage = 1.0;
+
 	while (1)
 	{
 		int col;
@@ -165,26 +149,91 @@ int main(void)
 			else if (GPIOB->IDR & GPIO_PIN_3) reading = keypad_matrix[col][3];
 			if(reading >= 0) break;
 		}
-		if(reading == target) {
-			HAL_GPIO_TogglePin(GPIOD, LD5_Pin);
-			target = (target % 12) + 1;
+		switch(state) {
+			case FirstKey:
+				temp_voltage = 0.0;
+				if(reading < 3) {
+					temp_voltage = (float) reading;
+					state = SecondKey;
+					holding = 0;
+					hold_count = 0;
+				} else if(reading == STAR) {
+					holding = 1;
+					if(hold_count > 3 * SYSTICK_FREQUENCY) {
+						state = Sleep;
+					}
+				} else {
+					holding = 0;
+					hold_count = 0;
+				}
+				break;
+			case SecondKey:
+				if(reading == STAR) {
+					holding = 1;
+					if(hold_count > 3 * SYSTICK_FREQUENCY) {
+						state = Sleep;
+					} else {
+						state = FirstKey;
+					}
+				} else {
+					holding = 0;
+					hold_count = 0;
+					if(reading < 10) {
+						temp_voltage += (float) reading / 10.0;
+						state = Wait;
+					} else if(reading == HASH) {
+						state = FirstKey;
+						target_voltage = temp_voltage;
+					}
+				}
+				break;
+			case Wait:
+				if(reading == STAR) {
+					holding = 1;
+					if(hold_count > 3 * SYSTICK_FREQUENCY) {
+						state = Sleep;
+					} else if(hold_count > 1 * SYSTICK_FREQUENCY) {
+						state = FirstKey;
+					} else {
+						state = SecondKey;
+						temp_voltage = (float)((int) temp_voltage);
+					}
+				} else if(reading == HASH) {
+					state = FirstKey;
+					target_voltage = temp_voltage;
+				}
+				break;
+			case Sleep:
+				holding = 0;
+				target_voltage = 0.0;
+				if(reading == HASH) {
+					holding = 1;
+					if(hold_count > 3 * SYSTICK_FREQUENCY) {
+						state = FirstKey;
+						holding = 0;
+						hold_count = 0;
+					}
+				} else {
+					hold_count = 0;
+				}
+				break;
 		}
-		TIM_OC_InitTypeDef sConfigOC;
-		if(counter != last_mode) {
-			switch(pmode) {
-				case 0:
+//		TIM_OC_InitTypeDef sConfigOC;
+//		if(counter != last_mode) {
+			switch(state) {
+				case FirstKey:
 					HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
 					HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
 					HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
 					break;
-				case 1:
+				case SecondKey:
 					HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
 					HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
 					HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
 					break;
-				case 2:
+				case Wait:
 					HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
 					HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
 					HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_SET);
@@ -197,128 +246,20 @@ int main(void)
 					HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_SET);
 					break;
 			}
-			sConfigOC.Pulse = duty_cycles[pmode] * PWM_PERIOD;
-			sConfigOC.OCMode = TIM_OCMODE_PWM1;
-			sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-			sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-			if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-			{
-				_Error_Handler(__FILE__, __LINE__);
-			}
-
-			HAL_TIM_MspPostInit(&htim3);
-			HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-		}
-		last_mode = counter;
-//		char rows = 0;
-//		int reading = -1;
-//		switch(state) {
-//			case ReadKeys:
-//				switch(col) {
-//					case 0:
-//						HAL_GPIO_WritePin(KEY_C1, GPIO_PIN_SET);
-//						HAL_GPIO_WritePin(KEY_C2, GPIO_PIN_RESET);
-//						HAL_GPIO_WritePin(KEY_C3, GPIO_PIN_RESET);
-//						break;
-//					case 1:
-//						HAL_GPIO_WritePin(KEY_C1, GPIO_PIN_RESET);
-//						HAL_GPIO_WritePin(KEY_C2, GPIO_PIN_SET);
-//						HAL_GPIO_WritePin(KEY_C3, GPIO_PIN_RESET);
-//						break;
-//					case 2:
-//						HAL_GPIO_WritePin(KEY_C1, GPIO_PIN_RESET);
-//						HAL_GPIO_WritePin(KEY_C2, GPIO_PIN_RESET);
-//						HAL_GPIO_WritePin(KEY_C3, GPIO_PIN_SET);
-//						break;
-//					default:
-//						break;
-//				}
-//				if(GPIOB->IDR & GPIO_PIN_9) rows |= 1;
-//				if(GPIOB->IDR & GPIO_PIN_8) rows |= 2;
-//				if(GPIOB->IDR & GPIO_PIN_7) rows |= 4;
-//				if(GPIOB->IDR & GPIO_PIN_6) rows |= 8;
-//				switch(col) {
-//					case 1:
-//						if(rows == 1) reading = 1;
-//						else if(rows == 2) reading = 4;
-//						else if(rows == 4) reading = 7;
-//						else if(rows == 8) reading = STAR;
-//						break;
-//					case 2:
-//						if(rows == 1) reading = 2;
-//						else if(rows == 2) reading = 5;
-//						else if(rows == 4) reading = 8;
-//						else if(rows == 8) reading = 0;
-//						break;
-//					case 3:
-//						if(rows == 1) reading = 3;
-//						else if(rows == 2) reading = 6;
-//						else if(rows == 4) reading = 9;
-//						else if(rows == 8) reading = HASH;
-//						break;
-//				}
-//				col = (col + 1) % 3;
-//				if(reading == target) {
-//					HAL_GPIO_TogglePin(GPIOD, LD5_Pin);
-//					target = (target % 12) + 1;
-//				}
-//				if(reading >= 0) {
-//					col = 0;
-//					state = Update;
-//				} else if(counter == 0) {
-//					state = Update;
-//				}
-//				break;
-//			case Update:
-//				if(counter != last_mode) {
-//					switch(pmode) {
-//						case 0:
-//							HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
-//							HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
-//							HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
-//							HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
-//							break;
-//						case 1:
-//							HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
-//							HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
-//							HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
-//							HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
-//							break;
-//						case 2:
-//							HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
-//							HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
-//							HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_SET);
-//							HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
-//							break;
-//						default:
-//							HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
-//							HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
-//							HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
-//							HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_SET);
-//							break;
-//					}
-//					sConfigOC.Pulse = duty_cycles[pmode] * PWM_PERIOD;
-//					sConfigOC.OCMode = TIM_OCMODE_PWM1;
-//					sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-//					sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-//					if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-//					{
-//						_Error_Handler(__FILE__, __LINE__);
-//					}
+//			sConfigOC.Pulse = duty_cycles[pmode] * PWM_PERIOD;
+//			sConfigOC.OCMode = TIM_OCMODE_PWM1;
+//			sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+//			sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+//			if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+//			{
+//				_Error_Handler(__FILE__, __LINE__);
+//			}
 //
-//					HAL_TIM_MspPostInit(&htim3);
-//					HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-//				}
-//				last_mode = counter;
-//				state = ReadKeys;
-//				break;
-//			default:
-//				state = ReadKeys;
-//				break;
+//			HAL_TIM_MspPostInit(&htim3);
+//			HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 //		}
-		/* USER CODE BEGIN 3 */
+//		last_mode = counter;
 	}
-	/* USER CODE END 3 */
 
 }
 
@@ -367,7 +308,7 @@ void SystemClock_Config(void)
 
 	/**Configure the Systick interrupt time 
 	*/
-	HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
+	HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/SYSTICK_FREQUENCY);
 
 	/**Configure the Systick 
 	*/
@@ -680,10 +621,14 @@ static void MX_GPIO_Init(void)
 	HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
 	/*Configure keypad row pins*/
-	GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_7|GPIO_PIN_5|GPIO_PIN_3;
+	GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_7|GPIO_PIN_5;
 	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
 	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	GPIO_InitStruct.Pin = GPIO_PIN_7;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
 	/*Configure GPIO pin : PA0 */
 	GPIO_InitStruct.Pin = GPIO_PIN_0;
@@ -705,7 +650,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
             the HAL_ADC_ConvCpltCallback could be implemented in the user file
    */
 	adc_value = HAL_ADC_GetValue(&hadc1);
-	HAL_GPIO_TogglePin(GPIOD, LD4_Pin); // This toggles the Green LED, meant for debugging purposes
 }
 /* USER CODE END 4 */
 

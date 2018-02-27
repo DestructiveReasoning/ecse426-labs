@@ -47,6 +47,9 @@ extern int counter;
 extern int pmode;
 int last_button_press = -1;
 
+extern int holding;
+extern int hold_count;
+
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
 /******************************************************************************/
@@ -62,6 +65,7 @@ void SysTick_Handler(void)
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   HAL_SYSTICK_IRQHandler();
+  if(holding) hold_count++;
   /* USER CODE BEGIN SysTick_IRQn 1 */
 
   /* USER CODE END SysTick_IRQn 1 */

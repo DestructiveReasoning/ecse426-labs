@@ -22,15 +22,24 @@ Dialog DLL:      TCM.DLL V1.32.0.0
  
 <h2>Project:</h2>
 Z:\home\harwiltz\Harley's Projects\Microprocessor Systems\Labs\G19_LAB3\MDK-ARM\G19_LAB3.uvprojx
-Project File Date:  02/26/2018
+Project File Date:  02/27/2018
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 5 (build 528)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'G19_LAB3'
 compiling main.c...
+../Src/main.c(182): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+  						temp_voltage += (float) reading / 10.0;
+../Src/main.c(98): warning:  #177-D: variable "last_mode"  was declared but never referenced
+  	int last_mode = 0;
+../Src/main.c(118): warning:  #177-D: variable "target"  was declared but never referenced
+  	int target = 1; //For keypad debugging
+../Src/main.c(120): warning:  #550-D: variable "target_voltage"  was set but never used
+  	float target_voltage = 1.0;
+../Src/main.c: 4 warnings, 0 errors
 linking...
-Program Size: Code=6760 RO-data=488 RW-data=36 ZI-data=1220  
-"G19_LAB3\G19_LAB3.axf" - 0 Error(s), 0 Warning(s).
+Program Size: Code=7124 RO-data=488 RW-data=32 ZI-data=1216  
+"G19_LAB3\G19_LAB3.axf" - 0 Error(s), 4 Warning(s).
 
 <h2>Software Packages used:</h2>
 
