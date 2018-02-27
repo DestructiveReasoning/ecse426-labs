@@ -57,6 +57,10 @@ TIM_HandleTypeDef htim3;
 int counter = 0;
 int pmode = 0;
 int target = 1;
+int reading = -1;
+float temp_voltage = 0.0;
+float target_voltage = 1.0;
+int state_counter = 0;
 
 enum State {FirstKey, SecondKey, Wait, Sleep};
 
@@ -96,6 +100,7 @@ int hold_count = 0;
 int main(void)
 {
 	int last_mode = 0;
+	int last_state = -1;
 	HAL_Init();
 	SystemClock_Config();
 
@@ -129,43 +134,47 @@ int main(void)
 	keypad_matrix[2][2] = 9;
 	keypad_matrix[2][3] = HASH;
 	int target = 1; //For keypad debugging
-	float temp_voltage = 0.0;
-	float target_voltage = 1.0;
+	
+	int last_col = -1;
 
-	int col = 0;
 	while (1)
 	{
-		int reading = -1;
-//		if(counter % 20 == 0) {
-		for(col = 0; col < 3; col++) {
-//			col = (col + 1) % 3;
-			switch(col) {
-				case 0:
-					HAL_GPIO_WritePin(KEY_C1, GPIO_PIN_SET);
-					HAL_GPIO_WritePin(KEY_C2, GPIO_PIN_RESET);
-					HAL_GPIO_WritePin(KEY_C3, GPIO_PIN_RESET);
-					break;
-				case 1:
-					HAL_GPIO_WritePin(KEY_C1, GPIO_PIN_RESET);
-					HAL_GPIO_WritePin(KEY_C2, GPIO_PIN_SET);
-					HAL_GPIO_WritePin(KEY_C3, GPIO_PIN_RESET);
-					break;
-				case 2:
-					HAL_GPIO_WritePin(KEY_C1, GPIO_PIN_RESET);
-					HAL_GPIO_WritePin(KEY_C2, GPIO_PIN_RESET);
-					HAL_GPIO_WritePin(KEY_C3, GPIO_PIN_SET);
-					break;
-				default: 
-					break;
+		//col = 0;
+		reading = -1;
+		counter = 0;
+		while(counter <= 350) {
+			if(col != last_col) {
+				last_col = col;
+			//for(col = 0; col < 3; col++) {
+				//col = (col + 1) % 3;
+				switch(col) {
+					case 0:
+						HAL_GPIO_WritePin(KEY_C1, GPIO_PIN_SET);
+						HAL_GPIO_WritePin(KEY_C2, GPIO_PIN_RESET);
+						HAL_GPIO_WritePin(KEY_C3, GPIO_PIN_RESET);
+						break;
+					case 1:
+						HAL_GPIO_WritePin(KEY_C1, GPIO_PIN_RESET);
+						HAL_GPIO_WritePin(KEY_C2, GPIO_PIN_SET);
+						HAL_GPIO_WritePin(KEY_C3, GPIO_PIN_RESET);
+						break;
+					case 2:
+						HAL_GPIO_WritePin(KEY_C1, GPIO_PIN_RESET);
+						HAL_GPIO_WritePin(KEY_C2, GPIO_PIN_RESET);
+						HAL_GPIO_WritePin(KEY_C3, GPIO_PIN_SET);
+						break;
+					default: 
+						break;
+				}
 			}
-			if(GPIOB->IDR & GPIO_PIN_8) reading = keypad_matrix[col][0];
-			else if(GPIOB->IDR & GPIO_PIN_7) reading = keypad_matrix[col][1];
-			else if(GPIOB->IDR & GPIO_PIN_5) reading = keypad_matrix[col][2];
-			else if (GPIOD->IDR & GPIO_PIN_7) reading = keypad_matrix[col][3];
+			if(GPIOB->IDR & GPIO_PIN_8) reading = keypad_matrix[last_col][0];
+			else if(GPIOB->IDR & GPIO_PIN_7) reading = keypad_matrix[last_col][1];
+			else if(GPIOB->IDR & GPIO_PIN_5) reading = keypad_matrix[last_col][2];
+			else if (GPIOD->IDR & GPIO_PIN_7) reading = keypad_matrix[last_col][3];
 			if(reading >= 0) break;
 		}
-//		}
-//		if(counter % 500 == 0) {
+		if (state_counter != last_state) {
+			last_state = state_counter;
 			switch(state) {
 				case FirstKey:
 					temp_voltage = 0.0;
@@ -195,8 +204,8 @@ int main(void)
 					} else {
 						holding = 0;
 						hold_count = 0;
-//						if(reading < 10 && reading >= 0) {
-						if(reading == 5) {
+						if(reading < 10 && reading >= 0) {
+						//if(reading == 5) {
 							temp_voltage += (float) reading / 10.0;
 							state = Wait;
 						} else if(reading == HASH) {
@@ -222,21 +231,21 @@ int main(void)
 					}
 					break;
 				case Sleep:
-					holding = 0;
 					target_voltage = 0.0;
 					if(reading == HASH) {
 						holding = 1;
-						if(hold_count > 3 * SYSTICK_FREQUENCY) {
+						if(hold_count >= 3 * SYSTICK_FREQUENCY) {
 							state = FirstKey;
 							holding = 0;
 							hold_count = 0;
 						}
 					} else {
+						holding = 0;
 						hold_count = 0;
 					}
 					break;
 			}
-//		}
+		}
 //		TIM_OC_InitTypeDef sConfigOC;
 //		if(counter != last_mode) {
 			switch(state) {

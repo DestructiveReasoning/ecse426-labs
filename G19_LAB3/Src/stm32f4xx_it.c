@@ -46,9 +46,12 @@ extern TIM_HandleTypeDef htim3;
 extern int counter;
 extern int pmode;
 int last_button_press = -1;
+int systick_counter = 0;
 
 extern int holding;
 extern int hold_count;
+extern int col;
+extern int state_counter;
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
@@ -60,6 +63,9 @@ extern int hold_count;
 void SysTick_Handler(void)
 {
 	counter++;
+	systick_counter++;
+	if (systick_counter % 400 == 0) state_counter++;
+	if(counter % 100 == 0) col = (col + 1) % 3;
   /* USER CODE BEGIN SysTick_IRQn 0 */
 
   /* USER CODE END SysTick_IRQn 0 */
