@@ -114,16 +114,31 @@ int main(void)
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
-	int keypad_matrix[3][4] = {1,4,7,STAR,2,5,8,0,3,6,9,HASH};
+//	int keypad_matrix[3][4] = {1,4,7,STAR,2,5,8,0,3,6,9,HASH};
+	int keypad_matrix[3][4];
+	keypad_matrix[0][0] = 1;
+	keypad_matrix[0][1] = 4;
+	keypad_matrix[0][2] = 7;
+	keypad_matrix[0][3] = STAR;
+	keypad_matrix[1][0] = 2;
+	keypad_matrix[1][1] = 5;
+	keypad_matrix[1][2] = 8;
+	keypad_matrix[1][3] = 0;
+	keypad_matrix[2][0] = 3;
+	keypad_matrix[2][1] = 6;
+	keypad_matrix[2][2] = 9;
+	keypad_matrix[2][3] = HASH;
 	int target = 1; //For keypad debugging
 	float temp_voltage = 0.0;
 	float target_voltage = 1.0;
 
+	int col = 0;
 	while (1)
 	{
-		int col;
 		int reading = -1;
+//		if(counter % 20 == 0) {
 		for(col = 0; col < 3; col++) {
+//			col = (col + 1) % 3;
 			switch(col) {
 				case 0:
 					HAL_GPIO_WritePin(KEY_C1, GPIO_PIN_SET);
@@ -146,78 +161,82 @@ int main(void)
 			if(GPIOB->IDR & GPIO_PIN_8) reading = keypad_matrix[col][0];
 			else if(GPIOB->IDR & GPIO_PIN_7) reading = keypad_matrix[col][1];
 			else if(GPIOB->IDR & GPIO_PIN_5) reading = keypad_matrix[col][2];
-			else if (GPIOB->IDR & GPIO_PIN_3) reading = keypad_matrix[col][3];
+			else if (GPIOD->IDR & GPIO_PIN_7) reading = keypad_matrix[col][3];
 			if(reading >= 0) break;
 		}
-		switch(state) {
-			case FirstKey:
-				temp_voltage = 0.0;
-				if(reading < 3) {
-					temp_voltage = (float) reading;
-					state = SecondKey;
-					holding = 0;
-					hold_count = 0;
-				} else if(reading == STAR) {
-					holding = 1;
-					if(hold_count > 3 * SYSTICK_FREQUENCY) {
-						state = Sleep;
-					}
-				} else {
-					holding = 0;
-					hold_count = 0;
-				}
-				break;
-			case SecondKey:
-				if(reading == STAR) {
-					holding = 1;
-					if(hold_count > 3 * SYSTICK_FREQUENCY) {
-						state = Sleep;
+//		}
+//		if(counter % 500 == 0) {
+			switch(state) {
+				case FirstKey:
+					temp_voltage = 0.0;
+					if(reading < 3 && reading >= 0) {
+						temp_voltage = (float) reading;
+						state = SecondKey;
+						holding = 0;
+						hold_count = 0;
+					} else if(reading == STAR) {
+						holding = 1;
+						if(hold_count > 3 * SYSTICK_FREQUENCY) {
+							state = Sleep;
+						}
 					} else {
-						state = FirstKey;
+						holding = 0;
+						hold_count = 0;
 					}
-				} else {
-					holding = 0;
-					hold_count = 0;
-					if(reading < 10) {
-						temp_voltage += (float) reading / 10.0;
-						state = Wait;
+					break;
+				case SecondKey:
+					if(reading == STAR) {
+						holding = 1;
+						if(hold_count > 3 * SYSTICK_FREQUENCY) {
+							state = Sleep;
+						} else {
+							state = FirstKey;
+						}
+					} else {
+						holding = 0;
+						hold_count = 0;
+//						if(reading < 10 && reading >= 0) {
+						if(reading == 5) {
+							temp_voltage += (float) reading / 10.0;
+							state = Wait;
+						} else if(reading == HASH) {
+							state = FirstKey;
+							target_voltage = temp_voltage;
+						}
+					}
+					break;
+				case Wait:
+					if(reading == STAR) {
+						holding = 1;
+						if(hold_count > 3 * SYSTICK_FREQUENCY) {
+							state = Sleep;
+						} else if(hold_count > 1 * SYSTICK_FREQUENCY) {
+							state = FirstKey;
+						} else {
+							state = SecondKey;
+							temp_voltage = (float)((int) temp_voltage);
+						}
 					} else if(reading == HASH) {
 						state = FirstKey;
 						target_voltage = temp_voltage;
 					}
-				}
-				break;
-			case Wait:
-				if(reading == STAR) {
-					holding = 1;
-					if(hold_count > 3 * SYSTICK_FREQUENCY) {
-						state = Sleep;
-					} else if(hold_count > 1 * SYSTICK_FREQUENCY) {
-						state = FirstKey;
+					break;
+				case Sleep:
+					holding = 0;
+					target_voltage = 0.0;
+					if(reading == HASH) {
+						holding = 1;
+						if(hold_count > 3 * SYSTICK_FREQUENCY) {
+							state = FirstKey;
+							holding = 0;
+							hold_count = 0;
+						}
 					} else {
-						state = SecondKey;
-						temp_voltage = (float)((int) temp_voltage);
-					}
-				} else if(reading == HASH) {
-					state = FirstKey;
-					target_voltage = temp_voltage;
-				}
-				break;
-			case Sleep:
-				holding = 0;
-				target_voltage = 0.0;
-				if(reading == HASH) {
-					holding = 1;
-					if(hold_count > 3 * SYSTICK_FREQUENCY) {
-						state = FirstKey;
-						holding = 0;
 						hold_count = 0;
 					}
-				} else {
-					hold_count = 0;
-				}
-				break;
-		}
+					break;
+			}
+//		}
 //		TIM_OC_InitTypeDef sConfigOC;
 //		if(counter != last_mode) {
 			switch(state) {
