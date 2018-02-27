@@ -87,7 +87,8 @@ float duty_cycles[] = {0.25, 0.5, 0.75, 1.0};
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-
+// for storing adc value
+uint8_t adc_value;
 /* USER CODE END 0 */
 
 int main(void)
@@ -124,7 +125,10 @@ int main(void)
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 
 	/* USER CODE BEGIN 2 */
-
+	// Start TIM2 Timer
+	HAL_TIM_Base_Start(&htim2);
+	// Start ADC
+	HAL_ADC_Start_IT(&hadc1);
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -402,7 +406,7 @@ static void MX_ADC1_Init(void)
 	*/
 	sConfig.Channel = ADC_CHANNEL_1;
 	sConfig.Rank = 1;
-	sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+	sConfig.SamplingTime = ADC_SAMPLETIME_28CYCLES; // changed from 3 to 28 cycles, read more into why
 	if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
 	{
 		_Error_Handler(__FILE__, __LINE__);
@@ -418,9 +422,9 @@ static void MX_TIM2_Init(void)
 	TIM_MasterConfigTypeDef sMasterConfig;
 
 	htim2.Instance = TIM2;
-	htim2.Init.Prescaler = 10;
+	htim2.Init.Prescaler = 84000; // changed from 10 to 84000 so that sampling frequency is 1KHz
 	htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim2.Init.Period = 0;
+	htim2.Init.Period = 100; // changed from 0 to 100 from 0
 	htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
 	{
@@ -692,7 +696,17 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+// ADC Conversion Function. This function is called whenever the ADC is activated!
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(hadc);
+  /* NOTE : This function Should not be modified, when the callback is needed,
+            the HAL_ADC_ConvCpltCallback could be implemented in the user file
+   */
+	adc_value = HAL_ADC_GetValue(&hadc1);
+	HAL_GPIO_TogglePin(GPIOD, LD4_Pin); // This toggles the Green LED, meant for debugging purposes
+}
 /* USER CODE END 4 */
 
 /**
