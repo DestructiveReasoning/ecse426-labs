@@ -4,6 +4,7 @@
 "g19_lab3\stm32f4xx_it.o"
 "g19_lab3\main.o"
 "g19_lab3\stm32f4xx_hal_msp.o"
+"g19_lab3\voltmeter.o"
 "g19_lab3\stm32f4xx_hal_flash_ex.o"
 "g19_lab3\stm32f4xx_hal_adc_ex.o"
 "g19_lab3\stm32f4xx_hal_rcc_ex.o"

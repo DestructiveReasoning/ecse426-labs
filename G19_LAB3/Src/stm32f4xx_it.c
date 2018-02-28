@@ -46,7 +46,7 @@ extern TIM_HandleTypeDef htim3;
 extern int counter;
 extern int pmode;
 int last_button_press = -1;
-int systick_counter = 0;
+extern int systick_counter;
 
 extern int holding;
 extern int hold_count;

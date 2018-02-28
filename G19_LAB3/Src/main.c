@@ -43,6 +43,10 @@
 #define STAR 11
 #define HASH 12
 #define SYSTICK_FREQUENCY 1000
+#define ADC_RES 8
+
+void write_to_display(float val);
+void shut_off_display(void);
 
 /* USER CODE BEGIN Includes */
 
@@ -55,12 +59,14 @@ TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 
 int counter = 0;
+int systick_counter = 0;
 int pmode = 0;
 int target = 1;
 int reading = -1;
 float temp_voltage = 0.0;
 float target_voltage = 1.0;
 int state_counter = 0;
+float the_reading = 0.0;
 
 enum State {FirstKey, SecondKey, Wait, Sleep};
 
@@ -96,6 +102,25 @@ uint8_t adc_value;
 
 int holding = 0;
 int hold_count = 0;
+
+void display_num(char code) {
+	if(code & SEG7_A) HAL_GPIO_WritePin(LED_A, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_A, GPIO_PIN_RESET);
+	if(code & SEG7_B) HAL_GPIO_WritePin(LED_B, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_B, GPIO_PIN_RESET);
+	if(code & SEG7_C) HAL_GPIO_WritePin(LED_C, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_C, GPIO_PIN_RESET);
+	if(code & SEG7_D) HAL_GPIO_WritePin(LED_D, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_D, GPIO_PIN_RESET);
+	if(code & SEG7_E) HAL_GPIO_WritePin(LED_E, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_E, GPIO_PIN_RESET);
+	if(code & SEG7_F) HAL_GPIO_WritePin(LED_F, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_F, GPIO_PIN_RESET);
+	if(code & SEG7_G) HAL_GPIO_WritePin(LED_G, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_G, GPIO_PIN_RESET);
+	if(code & SEG7_DP) HAL_GPIO_WritePin(LED_DP, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
+}
 
 int main(void)
 {
@@ -142,6 +167,14 @@ int main(void)
 		//col = 0;
 		reading = -1;
 		counter = 0;
+		/*
+		 * Remove while loop
+		 * int read_keypad = 0
+		 * change if(col != last_col) to if(!(read_keypad || col == last_col))
+		 * when reading >= 0 read_keypad = 1
+		 * change if(state_counter != last_state) to if(read_keypad == 1 && state_counter != last_state)
+		 * immediately under (if state_counter != last_state && read_keypad == 1) set read_keypad = 0
+		 */
 		while(counter <= 350) {
 			if(col != last_col) {
 				last_col = col;
@@ -246,34 +279,33 @@ int main(void)
 					break;
 			}
 		}
-//		TIM_OC_InitTypeDef sConfigOC;
-//		if(counter != last_mode) {
-			switch(state) {
-				case FirstKey:
-					HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
-					HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
-					HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
-					HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
-					break;
-				case SecondKey:
-					HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
-					HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
-					HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
-					HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
-					break;
-				case Wait:
-					HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
-					HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
-					HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_SET);
-					HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
-					break;
-				default:
-					HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
-					HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
-					HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
-					HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_SET);
-					break;
-			}
+		switch(state) {
+			case FirstKey:
+				HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
+				break;
+			case SecondKey:
+				HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
+				break;
+			case Wait:
+				HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
+				break;
+			default:
+				HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_SET);
+				break;
+		}
+//			TIM_OC_InitTypeDef sConfigOC;
 //			sConfigOC.Pulse = duty_cycles[pmode] * PWM_PERIOD;
 //			sConfigOC.OCMode = TIM_OCMODE_PWM1;
 //			sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
@@ -673,13 +705,42 @@ static void MX_GPIO_Init(void)
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
   /* Prevent unused argument(s) compilation warning */
-  UNUSED(hadc);
-  /* NOTE : This function Should not be modified, when the callback is needed,
-            the HAL_ADC_ConvCpltCallback could be implemented in the user file
-   */
+	UNUSED(hadc);
 	adc_value = HAL_ADC_GetValue(&hadc1);
+	float filtered_val;
+	FIR_C(adc_value, &filtered_val);
+	float voltage_reading = 3.0 * filtered_val / ((1 << ADC_RES) - 1.0);
+	plot_point(voltage_reading, &the_reading);
 }
 /* USER CODE END 4 */
+void write_to_display(float val) {
+	if(systick_counter % 3 == 0) {
+		display_num(get_display_leds((int)(val * 100) % 100));
+		HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(DIG_SEL_ONES, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(DIG_SEL_TENTHS, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(DIG_SEL_HUNDREDTHS, GPIO_PIN_RESET);
+	} else if(systick_counter % 3 == 1) {
+		display_num(get_display_leds((int)(val * 10) % 10));
+		HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(DIG_SEL_ONES, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(DIG_SEL_TENTHS, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(DIG_SEL_HUNDREDTHS, GPIO_PIN_RESET);
+	} else {
+		display_num(get_display_leds((int)val));
+		HAL_GPIO_WritePin(LED_DP, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(DIG_SEL_ONES, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(DIG_SEL_TENTHS, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(DIG_SEL_HUNDREDTHS, GPIO_PIN_SET);
+	}
+}
+
+void shut_off_display(void) {
+	HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(DIG_SEL_ONES, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(DIG_SEL_TENTHS, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(DIG_SEL_HUNDREDTHS, GPIO_PIN_RESET);
+}
 
 /**
  * @brief  This function is executed in case of error occurrence.
