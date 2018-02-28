@@ -68,9 +68,7 @@ float target_voltage = 1.0;
 int state_counter = 0;
 float the_reading = 0.0;
 
-enum State {FirstKey, SecondKey, Wait, Sleep};
-
-enum State state = FirstKey;
+int state = FIRST_KEY;
 int col = 0;
 
 #define PWM_PERIOD 168
@@ -103,24 +101,6 @@ uint8_t adc_value;
 int holding = 0;
 int hold_count = 0;
 
-void display_num(char code) {
-	if(code & SEG7_A) HAL_GPIO_WritePin(LED_A, GPIO_PIN_SET);
-	else HAL_GPIO_WritePin(LED_A, GPIO_PIN_RESET);
-	if(code & SEG7_B) HAL_GPIO_WritePin(LED_B, GPIO_PIN_SET);
-	else HAL_GPIO_WritePin(LED_B, GPIO_PIN_RESET);
-	if(code & SEG7_C) HAL_GPIO_WritePin(LED_C, GPIO_PIN_SET);
-	else HAL_GPIO_WritePin(LED_C, GPIO_PIN_RESET);
-	if(code & SEG7_D) HAL_GPIO_WritePin(LED_D, GPIO_PIN_SET);
-	else HAL_GPIO_WritePin(LED_D, GPIO_PIN_RESET);
-	if(code & SEG7_E) HAL_GPIO_WritePin(LED_E, GPIO_PIN_SET);
-	else HAL_GPIO_WritePin(LED_E, GPIO_PIN_RESET);
-	if(code & SEG7_F) HAL_GPIO_WritePin(LED_F, GPIO_PIN_SET);
-	else HAL_GPIO_WritePin(LED_F, GPIO_PIN_RESET);
-	if(code & SEG7_G) HAL_GPIO_WritePin(LED_G, GPIO_PIN_SET);
-	else HAL_GPIO_WritePin(LED_G, GPIO_PIN_RESET);
-	if(code & SEG7_DP) HAL_GPIO_WritePin(LED_DP, GPIO_PIN_SET);
-	else HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
-}
 
 int main(void)
 {
@@ -209,30 +189,30 @@ int main(void)
 		if (state_counter != last_state) {
 			last_state = state_counter;
 			switch(state) {
-				case FirstKey:
+				case FIRST_KEY:
 					temp_voltage = 0.0;
 					if(reading < 3 && reading >= 0) {
 						temp_voltage = (float) reading;
-						state = SecondKey;
+						state = SECOND_KEY;
 						holding = 0;
 						hold_count = 0;
 					} else if(reading == STAR) {
 						holding = 1;
 						if(hold_count > 3 * SYSTICK_FREQUENCY) {
-							state = Sleep;
+							state = SLEEP;
 						}
 					} else {
 						holding = 0;
 						hold_count = 0;
 					}
 					break;
-				case SecondKey:
+				case SECOND_KEY:
 					if(reading == STAR) {
 						holding = 1;
 						if(hold_count > 3 * SYSTICK_FREQUENCY) {
-							state = Sleep;
+							state = SLEEP;
 						} else {
-							state = FirstKey;
+							state = FIRST_KEY;
 						}
 					} else {
 						holding = 0;
@@ -240,35 +220,35 @@ int main(void)
 						if(reading < 10 && reading >= 0) {
 						//if(reading == 5) {
 							temp_voltage += (float) reading / 10.0;
-							state = Wait;
+							state = WAIT;
 						} else if(reading == HASH) {
-							state = FirstKey;
+							state = FIRST_KEY;
 							target_voltage = temp_voltage;
 						}
 					}
 					break;
-				case Wait:
+				case WAIT:
 					if(reading == STAR) {
 						holding = 1;
 						if(hold_count > 3 * SYSTICK_FREQUENCY) {
-							state = Sleep;
+							state = SLEEP;
 						} else if(hold_count > 1 * SYSTICK_FREQUENCY) {
-							state = FirstKey;
+							state = FIRST_KEY;
 						} else {
-							state = SecondKey;
+							state = SECOND_KEY;
 							temp_voltage = (float)((int) temp_voltage);
 						}
 					} else if(reading == HASH) {
-						state = FirstKey;
+						state = FIRST_KEY;
 						target_voltage = temp_voltage;
 					}
 					break;
-				case Sleep:
+				case SLEEP:
 					target_voltage = 0.0;
 					if(reading == HASH) {
 						holding = 1;
 						if(hold_count >= 3 * SYSTICK_FREQUENCY) {
-							state = FirstKey;
+							state = FIRST_KEY;
 							holding = 0;
 							hold_count = 0;
 						}
@@ -280,19 +260,19 @@ int main(void)
 			}
 		}
 		switch(state) {
-			case FirstKey:
+			case FIRST_KEY:
 				HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
 				HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
 				HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
 				HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
 				break;
-			case SecondKey:
+			case SECOND_KEY:
 				HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
 				HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
 				HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
 				HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
 				break;
-			case Wait:
+			case WAIT:
 				HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
 				HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
 				HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_SET);
@@ -655,23 +635,11 @@ static void MX_GPIO_Init(void)
 	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
 	/*Configure digit selector pins*/
-	GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_3|GPIO_PIN_0;
+	GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_0;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-
-	/*Configure 7 segment display leds*/
-	GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_4|GPIO_PIN_6|GPIO_PIN_8;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-	GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_4|GPIO_PIN_6|GPIO_PIN_8;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
 	/*Configure keypad column pins*/
 	GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_3|GPIO_PIN_1;
@@ -713,34 +681,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 	plot_point(voltage_reading, &the_reading);
 }
 /* USER CODE END 4 */
-void write_to_display(float val) {
-	if(systick_counter % 3 == 0) {
-		display_num(get_display_leds((int)(val * 100) % 100));
-		HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(DIG_SEL_ONES, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(DIG_SEL_TENTHS, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(DIG_SEL_HUNDREDTHS, GPIO_PIN_RESET);
-	} else if(systick_counter % 3 == 1) {
-		display_num(get_display_leds((int)(val * 10) % 10));
-		HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(DIG_SEL_ONES, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(DIG_SEL_TENTHS, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(DIG_SEL_HUNDREDTHS, GPIO_PIN_RESET);
-	} else {
-		display_num(get_display_leds((int)val));
-		HAL_GPIO_WritePin(LED_DP, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(DIG_SEL_ONES, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(DIG_SEL_TENTHS, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(DIG_SEL_HUNDREDTHS, GPIO_PIN_SET);
-	}
-}
-
-void shut_off_display(void) {
-	HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(DIG_SEL_ONES, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(DIG_SEL_TENTHS, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(DIG_SEL_HUNDREDTHS, GPIO_PIN_RESET);
-}
 
 /**
  * @brief  This function is executed in case of error occurrence.

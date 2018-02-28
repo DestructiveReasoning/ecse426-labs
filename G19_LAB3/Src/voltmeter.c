@@ -88,14 +88,14 @@ char get_display_leds(int c) {
  * @retval None
  */
 void plot_point(float input, float* output) {
-	static int count = 0;
+	static int point_count = 0;
 	static float rms_counter = 0.0;
-	if(count == 0) {
+	if(point_count == 0) {
 		rms_counter = input * input;
 	} else {
 		rms_counter += input * input;
 	}
-	count++;
-	count %= RMS_UPDATE_WINDOW;
-	if(count == 0) *output = sqrt(rms_counter / ((float) count));
+	point_count++;
+	if(point_count == RMS_UPDATE_WINDOW) *output = sqrt(rms_counter / ((float) point_count));
+	point_count %= RMS_UPDATE_WINDOW;
 }

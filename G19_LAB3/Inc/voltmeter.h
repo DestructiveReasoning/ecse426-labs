@@ -35,8 +35,8 @@
 #define LED_G GPIOB, GPIO_PIN_13
 #define LED_DP GPIOD, GPIO_PIN_8
 
-#define DIG_SEL_HUNDREDTHS	GPIOD, GPIO_PIN_7
-#define DIG_SEL_TENTHS		GPIOD, GPIO_PIN_3
+#define DIG_SEL_HUNDREDTHS	GPIOD, GPIO_PIN_3
+#define DIG_SEL_TENTHS		GPIOD, GPIO_PIN_2
 #define DIG_SEL_ONES		GPIOD, GPIO_PIN_0
 
 #define KEY_C1	GPIOE, GPIO_PIN_5
@@ -46,6 +46,11 @@
 #define KEY_R2	GPIOB, GPIO_PIN_7
 #define KEY_R3	GPIOB, GPIO_PIN_5
 #define KEY_R4	GPIOD, GPIO_PIN_7
+
+#define FIRST_KEY 0
+#define SECOND_KEY 1
+#define WAIT 2
+#define SLEEP 3
 
 void FIR_C(int input, float *output);
 void plot_point(float, float *);
