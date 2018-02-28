@@ -53,7 +53,7 @@
 #define WAIT 2
 #define SLEEP 3
 
-#define P_CONSTANT 0.008
+#define P_CONSTANT 0.01
 
 extern float duty_cycle;
 

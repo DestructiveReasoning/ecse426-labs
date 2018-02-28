@@ -200,6 +200,9 @@ int main(void)
 						holding = 1;
 						if(hold_count > 3 * SYSTICK_FREQUENCY) {
 							state = SLEEP;
+						} else if(hold_count > 1 * SYSTICK_FREQUENCY) {
+							state = FIRST_KEY;
+							target_voltage = 0.0;
 						}
 					} else {
 						holding = 0;
@@ -211,6 +214,9 @@ int main(void)
 						holding = 1;
 						if(hold_count > 3 * SYSTICK_FREQUENCY) {
 							state = SLEEP;
+						} else if(hold_count > 1 * SYSTICK_FREQUENCY) {
+							state = FIRST_KEY;
+							target_voltage = 0.0;
 						} else {
 							state = FIRST_KEY;
 						}
@@ -218,7 +224,6 @@ int main(void)
 						holding = 0;
 						hold_count = 0;
 						if(reading < 10 && reading >= 0) {
-						//if(reading == 5) {
 							temp_voltage += (float) reading / 10.0;
 							state = WAIT;
 						} else if(reading == HASH) {
@@ -234,6 +239,7 @@ int main(void)
 							state = SLEEP;
 						} else if(hold_count > 1 * SYSTICK_FREQUENCY) {
 							state = FIRST_KEY;
+							target_voltage = 0.0;
 						} else {
 							state = SECOND_KEY;
 							temp_voltage = (float)((int) temp_voltage);
