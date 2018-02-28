@@ -16,6 +16,7 @@
 #define ADC_SAMPLE_FREQUENCY 100
 #define RMS_UPDATE_FREQUENCY 10
 #define RMS_UPDATE_WINDOW ADC_SAMPLE_FREQUENCY / RMS_UPDATE_FREQUENCY
+#define PWM_PERIOD 168
 
 #define SEG7_A 0x80
 #define SEG7_B 0x40
@@ -52,8 +53,13 @@
 #define WAIT 2
 #define SLEEP 3
 
+#define P_CONSTANT 0.008
+
+extern float duty_cycle;
+
 void FIR_C(int input, float *output);
 void plot_point(float, float *);
 char get_display_leds(int);
+void adjust_pwm(float, float);
 
 #endif

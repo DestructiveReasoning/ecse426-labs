@@ -68,10 +68,10 @@ float target_voltage = 1.0;
 int state_counter = 0;
 float the_reading = 0.0;
 
+float duty_cycle = 0.5;
+
 int state = FIRST_KEY;
 int col = 0;
-
-#define PWM_PERIOD 168
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -285,18 +285,6 @@ int main(void)
 				HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_SET);
 				break;
 		}
-//			TIM_OC_InitTypeDef sConfigOC;
-//			sConfigOC.Pulse = duty_cycles[pmode] * PWM_PERIOD;
-//			sConfigOC.OCMode = TIM_OCMODE_PWM1;
-//			sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-//			sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-//			if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-//			{
-//				_Error_Handler(__FILE__, __LINE__);
-//			}
-//
-//			HAL_TIM_MspPostInit(&htim3);
-//			HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 //		}
 //		last_mode = counter;
 	}
@@ -452,7 +440,7 @@ static void MX_TIM3_Init(void)
 	}
 
 	sConfigOC.OCMode = TIM_OCMODE_PWM1;
-	sConfigOC.Pulse = 0.5 * PWM_PERIOD;
+	sConfigOC.Pulse = duty_cycle * PWM_PERIOD;
 	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
 	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
 	if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
@@ -679,6 +667,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 	FIR_C(adc_value, &filtered_val);
 	float voltage_reading = 3.0 * filtered_val / ((1 << ADC_RES) - 1.0);
 	plot_point(voltage_reading, &the_reading);
+	adjust_pwm(voltage_reading, target_voltage);
 }
 /* USER CODE END 4 */
 

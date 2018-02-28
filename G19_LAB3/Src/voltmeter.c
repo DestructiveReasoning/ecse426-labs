@@ -1,5 +1,6 @@
 #include "voltmeter.h"
 #include "math.h"
+#include "stm32f4xx_hal.h"
 /**
  *******************************************
  * @file voltmeter.c
@@ -35,6 +36,8 @@
  * @def DIG_SEL_ONES		GPIOD, GPIO_PIN_0
  */
 
+extern TIM_HandleTypeDef htim3;
+
 /**
  * @brief FIR filter
  * 4th order filter that outputs the average over the past 5 inputs
@@ -43,7 +46,7 @@
  * @retval None
  */
 void FIR_C(int Input, float *Output) {
-	float b[] = {0.2, 0.2, 0.2, 0.2, 0.2}; //coefficients
+	float b[] = {0.04, 0.08, 0.16, 0.32, 0.4}; //coefficients
 	static int x[5]; //stores last 5 inputs
 	static int count = 0; //counts how many inputs have been seen
 	float out = 0.0;
@@ -98,4 +101,23 @@ void plot_point(float input, float* output) {
 	point_count++;
 	if(point_count == RMS_UPDATE_WINDOW) *output = sqrt(rms_counter / ((float) point_count));
 	point_count %= RMS_UPDATE_WINDOW;
+}
+
+void adjust_pwm(float cur, float target) {
+	float diff = target - cur;
+	duty_cycle += diff * P_CONSTANT;
+	if(duty_cycle < 0.0) duty_cycle = 0.0;
+	else if(duty_cycle > 1.0) duty_cycle = 1.0;
+	TIM_OC_InitTypeDef sConfigOC;
+	sConfigOC.Pulse = duty_cycle * PWM_PERIOD;
+	sConfigOC.OCMode = TIM_OCMODE_PWM1;
+	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+	if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+	{
+		_Error_Handler(__FILE__, __LINE__);
+	}
+
+	HAL_TIM_MspPostInit(&htim3);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 }

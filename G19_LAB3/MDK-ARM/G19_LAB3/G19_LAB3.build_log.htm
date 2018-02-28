@@ -27,6 +27,7 @@ Project File Date:  02/28/2018
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 5 (build 528)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'G19_LAB3'
+compiling stm32f4xx_it.c...
 compiling main.c...
 ../Src/main.c(222): warning:  #1035-D: single-precision operand implicitly converted to double-precision
   							temp_voltage += (float) reading / 10.0;
@@ -34,12 +35,23 @@ compiling main.c...
   	int last_mode = 0;
 ../Src/main.c(141): warning:  #177-D: variable "target"  was declared but never referenced
   	int target = 1; //For keypad debugging
-../Src/main.c(680): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+../Src/main.c(668): warning:  #1035-D: single-precision operand implicitly converted to double-precision
   	float voltage_reading = 3.0 * filtered_val / ((1 << ADC_RES) - 1.0);
 ../Src/main.c: 4 warnings, 0 errors
+compiling voltmeter.c...
+..\Src\voltmeter.c(108): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+  	duty_cycle += diff * 
+_CONSTANT;
+..\Src\voltmeter.c(109): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+  	if(duty_cycle < 0.0) duty_cycle = 0.0;
+..\Src\voltmeter.c(110): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+  	else if(duty_cycle > 1.0) duty_cycle = 1.0;
+..\Src\voltmeter.c(121): warning:  #223-D: function "HAL_TIM_MspPostInit" declared implicitly
+  	HAL_TIM_MspPostInit(&htim3);
+..\Src\voltmeter.c: 4 warnings, 0 errors
 linking...
-Program Size: Code=9944 RO-data=460 RW-data=80 ZI-data=1240  
-"G19_LAB3\G19_LAB3.axf" - 0 Error(s), 4 Warning(s).
+Program Size: Code=10208 RO-data=460 RW-data=84 ZI-data=1236  
+"G19_LAB3\G19_LAB3.axf" - 0 Error(s), 8 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -62,7 +74,7 @@ Package Vendor: Keil
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE:5.0.1
-Build Time Elapsed:  00:00:03
+Build Time Elapsed:  00:00:05
 </pre>
 </body>
 </html>
