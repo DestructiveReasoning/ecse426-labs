@@ -67,6 +67,7 @@ float temp_voltage = 0.0;
 float target_voltage = 1.0;
 int state_counter = 0;
 float the_reading = 0.0;
+float filtered_val;
 
 float duty_cycle = 0.5;
 
@@ -399,7 +400,7 @@ static void MX_TIM2_Init(void)
 	htim2.Instance = TIM2;
 	htim2.Init.Prescaler = 84000; // changed from 10 to 84000 so that sampling frequency is 1KHz
 	htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim2.Init.Period = 100; // changed from 0 to 100 from 0
+	htim2.Init.Period = 10; // this activates the ADC in 1 period (ms)
 	htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
 	{
@@ -669,7 +670,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
   /* Prevent unused argument(s) compilation warning */
 	UNUSED(hadc);
 	adc_value = HAL_ADC_GetValue(&hadc1);
-	float filtered_val;
+	//float filtered_val;
 	FIR_C(adc_value, &filtered_val);
 	float voltage_reading = 3.0 * filtered_val / ((1 << ADC_RES) - 1.0);
 	plot_point(voltage_reading, &the_reading);
