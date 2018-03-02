@@ -46,8 +46,6 @@ extern TIM_HandleTypeDef htim3;
  * @retval None
  */
 void FIR_C(int Input, float *Output) {
-	//float b[] = {0.2, 0.2, 0.2, 0.2, 0.2};
-	//float b[] = {0.05, 0.05, 0.05, 0.05, 0.05, 0.15, 0.15, 0.15, 0.15, 0.15}; //coefficients
 	float b[] = {0.15, 0.15, 0.15, 0.15, 0.15, 0.05, 0.05, 0.05, 0.05, 0.05}; 
 	static int x[10]; //stores last 5 inputs
 	static int count = 0; //counts how many inputs have been seen
