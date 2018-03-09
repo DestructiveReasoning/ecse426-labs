@@ -22,8 +22,12 @@ lab4\stm32f4xx_hal_rcc_ex.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_g
 lab4\stm32f4xx_hal_rcc_ex.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h
 lab4\stm32f4xx_hal_rcc_ex.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma_ex.h
 lab4\stm32f4xx_hal_rcc_ex.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_cortex.h
+lab4\stm32f4xx_hal_rcc_ex.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_adc.h
+lab4\stm32f4xx_hal_rcc_ex.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_adc_ex.h
 lab4\stm32f4xx_hal_rcc_ex.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash.h
 lab4\stm32f4xx_hal_rcc_ex.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ex.h
 lab4\stm32f4xx_hal_rcc_ex.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ramfunc.h
 lab4\stm32f4xx_hal_rcc_ex.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h
 lab4\stm32f4xx_hal_rcc_ex.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h
+lab4\stm32f4xx_hal_rcc_ex.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h
+lab4\stm32f4xx_hal_rcc_ex.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h

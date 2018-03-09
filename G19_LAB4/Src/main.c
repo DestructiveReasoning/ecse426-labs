@@ -49,6 +49,12 @@
 #include "main.h"
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
+#include "voltmeter.h"
+
+#define STAR 11
+#define HASH 12
+#define SYSTICK_FREQUENCY 1000
+#define ADC_RES 8
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
@@ -56,9 +62,9 @@ ADC_HandleTypeDef hadc1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 
-osThreadId defaultTaskHandle;
-osThreadId myTask02Handle;
-osThreadId myTask03Handle;
+osThreadId timerHandle;
+osThreadId fsmHandle;
+osThreadId keypadHandle;
 osSemaphoreId myBinarySem01Handle;
 
 /* Private function prototypes -----------------------------------------------*/
@@ -67,14 +73,62 @@ static void MX_GPIO_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM2_Init(void);
-void StartDefaultTask(void const * argument);
-void StartTask02(void const * argument);
-void StartTask03(void const * argument);
+
+void GeneralTimer(void const * argument);
+void FSMController(void const * argument);
+void KeypadHandler(void const *argument);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
-                                
+
+TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim3;
+
+int counter = 0;
+int systick_counter = 0;
+int pmode = 0;
+int target = 1;
+int reading = -1;
+float temp_voltage = 0.0;
+float target_voltage = 1.0;
+float the_reading = 0.0;
+float filtered_val;
+int button = -1;
+
+float duty_cycle = 0.5;
+
+int state = FIRST_KEY;
+int col = 0;
+int cur_col = 0;
+
+uint8_t adc_value;
+
+int holding = 0;
+int hold_count = 0;
+
+int keypad_matrix[3][4];
+
+/*
+ * TIMER VARIABLES
+ */
+uint64_t time = 0;
+uint64_t state_counter = 0;
+
+uint32_t keySig = 0;
+  
 int main(void)
 {
+	keypad_matrix[0][0] = 1;
+	keypad_matrix[0][1] = 4;
+	keypad_matrix[0][2] = 7;
+	keypad_matrix[0][3] = STAR;
+	keypad_matrix[1][0] = 2;
+	keypad_matrix[1][1] = 5;
+	keypad_matrix[1][2] = 8;
+	keypad_matrix[1][3] = 0;
+	keypad_matrix[2][0] = 3;
+	keypad_matrix[2][1] = 6;
+	keypad_matrix[2][2] = 9;
+	keypad_matrix[2][3] = HASH;             
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
@@ -87,45 +141,23 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM3_Init();
   MX_TIM2_Init();
+	
+	// Start TIM2 Timer
+	HAL_TIM_Base_Start(&htim2);
+	// Start ADC
+	HAL_ADC_Start_IT(&hadc1);
 
-  /* USER CODE BEGIN RTOS_MUTEX */
-	/* add mutexes, ... */
-  /* USER CODE END RTOS_MUTEX */
-
-  /* Create the semaphores(s) */
-  /* definition and creation of myBinarySem01 */
   osSemaphoreDef(myBinarySem01);
   myBinarySem01Handle = osSemaphoreCreate(osSemaphore(myBinarySem01), 1);
-
-  /* USER CODE BEGIN RTOS_SEMAPHORES */
-  /* add semaphores, ... */
-  /* USER CODE END RTOS_SEMAPHORES */
-
-  /* USER CODE BEGIN RTOS_TIMERS */
-  /* start timers, add new ones, ... */
-  /* USER CODE END RTOS_TIMERS */
-
-  /* Create the thread(s) */
-  /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
-  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
-
-  /* definition and creation of myTask02 */
-  osThreadDef(myTask02, StartTask02, osPriorityIdle, 0, 128);
-  myTask02Handle = osThreadCreate(osThread(myTask02), NULL);
-
-  /* definition and creation of myTask03 */
-  osThreadDef(myTask03, StartTask03, osPriorityHigh, 0, 256);
-  myTask03Handle = osThreadCreate(osThread(myTask03), NULL);
-
-  /* USER CODE BEGIN RTOS_THREADS */
-  /* add threads, ... */
-  /* USER CODE END RTOS_THREADS */
-
-  /* USER CODE BEGIN RTOS_QUEUES */
-  /* add queues, ... */
-  /* USER CODE END RTOS_QUEUES */
- 
+	
+	osThreadDef(timerTask, GeneralTimer, osPriorityHigh, 0, 128);
+	timerHandle = osThreadCreate(osThread(timerTask), NULL);
+	
+	osThreadDef(fsmTask, FSMController, osPriorityNormal, 0, 256);
+	fsmHandle = osThreadCreate(osThread(fsmTask), NULL);
+	
+	osThreadDef(keypadTask, KeypadHandler, osPriorityNormal, 0, 256);
+	keypadHandle = osThreadCreate(osThread(keypadTask), NULL);
 
   /* Start scheduler */
   osKernelStart();
@@ -452,48 +484,212 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_EVT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(MEMS_INT2_GPIO_Port, &GPIO_InitStruct);
+	
+	/*Configure 7 segment pins*/
+	GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_11|GPIO_PIN_10|GPIO_PIN_14|GPIO_PIN_15;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+	GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	GPIO_InitStruct.Pin = GPIO_PIN_8;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+	/*Configure digit selector pins*/
+	GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_0;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+	/*Configure keypad column pins*/
+	GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_3|GPIO_PIN_1;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+	/*Configure keypad row pins*/
+	GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_7|GPIO_PIN_5;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	GPIO_InitStruct.Pin = GPIO_PIN_7;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
 }
 
-/* USER CODE BEGIN 4 */
-
-/* USER CODE END 4 */
-
-/* StartDefaultTask function */
-void StartDefaultTask(void const * argument)
-{
-
-  /* USER CODE BEGIN 5 */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END 5 */ 
+void GeneralTimer(void const * argument) {
+	while(1) {
+		osDelay(1);
+		time++;
+		if(time % 400 == 0) state_counter++;
+		if(time % 100 == 0) col++;
+		if(holding) hold_count++;
+	}
 }
 
-/* StartTask02 function */
-void StartTask02(void const * argument)
-{
-  /* USER CODE BEGIN StartTask02 */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END StartTask02 */
+void FSMController(void const * argument) {
+	static uint64_t last_state = 0;
+	while(1) {
+		button = -1;
+		if (state_counter != last_state) {
+			osSignalWait(keySig, 0);
+			keySig = 0;
+			last_state = state_counter;
+			button = reading;
+			reading = -1;
+			switch(state) {
+				case FIRST_KEY:
+					temp_voltage = 0.0;
+					if(button < 3 && button >= 0) {
+						temp_voltage = (float) button;
+						state = SECOND_KEY;
+						holding = 0;
+						hold_count = 0;
+					} else if(button == STAR) {
+						holding = 1;
+						if(hold_count > 3 * SYSTICK_FREQUENCY) {
+							state = SLEEP;
+						} else if(hold_count > 1 * SYSTICK_FREQUENCY) {
+							state = FIRST_KEY;
+							target_voltage = 0.0;
+						}
+					} else {
+						holding = 0;
+						hold_count = 0;
+					}
+					break;
+				case SECOND_KEY:
+					if(button == STAR) {
+						holding = 1;
+						if(hold_count > 3 * SYSTICK_FREQUENCY) {
+							state = SLEEP;
+						} else if(hold_count > 1 * SYSTICK_FREQUENCY) {
+							state = FIRST_KEY;
+							target_voltage = 0.0;
+						} else {
+							state = FIRST_KEY;
+						}
+					} else {
+						holding = 0;
+						hold_count = 0;
+						if(button < 10 && button >= 0) {
+							temp_voltage += (float) button / 10.0;
+							state = WAIT;
+						} else if(button == HASH) {
+							state = FIRST_KEY;
+							target_voltage = temp_voltage;
+						}
+					}
+					break;
+				case WAIT:
+					if(button == STAR) {
+						holding = 1;
+						if(hold_count > 3 * SYSTICK_FREQUENCY) {
+							state = SLEEP;
+						} else if(hold_count > 1 * SYSTICK_FREQUENCY) {
+							state = FIRST_KEY;
+							target_voltage = 0.0;
+						} else {
+							state = SECOND_KEY;
+							temp_voltage = (float)((int) temp_voltage);
+						}
+					} else if(button == HASH) {
+						state = FIRST_KEY;
+						target_voltage = temp_voltage;
+					}
+					break;
+				case SLEEP:
+					target_voltage = 0.0;
+					if(button == HASH) {
+						holding = 1;
+						if(hold_count >= 3 * SYSTICK_FREQUENCY) {
+							state = FIRST_KEY;
+							holding = 0;
+							hold_count = 0;
+						}
+					} else {
+						holding = 0;
+						hold_count = 0;
+					}
+					break;
+			}
+		}
+		switch(state) {
+			case FIRST_KEY:
+				HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
+				break;
+			case SECOND_KEY:
+				HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
+				break;
+			case WAIT:
+				HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
+				break;
+			default:
+				HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_SET);
+				break;
+		}
+	}
 }
 
-/* StartTask03 function */
-void StartTask03(void const * argument)
-{
-  /* USER CODE BEGIN StartTask03 */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END StartTask03 */
+void KeypadHandler(void const * argument) {
+	static int last_col = 0;
+	while(1) {
+		if(col != last_col) {
+			cur_col = (cur_col + 1) % 3;
+			//cur_col = 0;
+			last_col = col;
+			switch(cur_col) {
+				case 0:
+					HAL_GPIO_WritePin(KEY_C1, GPIO_PIN_SET);
+					HAL_GPIO_WritePin(KEY_C2, GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(KEY_C3, GPIO_PIN_RESET);
+					break;
+				case 1:
+					HAL_GPIO_WritePin(KEY_C1, GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(KEY_C2, GPIO_PIN_SET);
+					HAL_GPIO_WritePin(KEY_C3, GPIO_PIN_RESET);
+					break;
+				case 2:
+					HAL_GPIO_WritePin(KEY_C1, GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(KEY_C2, GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(KEY_C3, GPIO_PIN_SET);
+					break;
+				default: 
+					break;
+			}
+		}
+		if(GPIOB->IDR & GPIO_PIN_8) reading = keypad_matrix[cur_col][0];
+		else if(GPIOB->IDR & GPIO_PIN_7) reading = keypad_matrix[cur_col][1];
+		else if(GPIOB->IDR & GPIO_PIN_5) reading = keypad_matrix[cur_col][2];
+		else if (GPIOD->IDR & GPIO_PIN_7) reading = keypad_matrix[cur_col][3];
+		if(reading != -1 || cur_col == 2) {
+			cur_col = 2;
+			osSignalSet(fsmHandle, keySig);
+		}
+	}
 }
 
 /**

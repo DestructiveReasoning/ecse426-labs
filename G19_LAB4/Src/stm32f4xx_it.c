@@ -35,6 +35,7 @@
 #include "stm32f4xx.h"
 #include "stm32f4xx_it.h"
 #include "cmsis_os.h"
+#include "voltmeter.h"
 
 /* USER CODE BEGIN 0 */
 
@@ -42,10 +43,71 @@
 
 /* External variables --------------------------------------------------------*/
 extern ADC_HandleTypeDef hadc1;
+extern TIM_HandleTypeDef htim3;
 
+extern int counter;
+extern int pmode;
+int last_button_press = -1;
+extern int systick_counter;
+
+extern int holding;
+extern int hold_count;
+extern int col;
+extern int state_counter;
+extern int state;
+extern float temp_voltage;
+extern float the_reading;
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
 /******************************************************************************/
+
+void display_num(char code) {
+	if(code & SEG7_A) HAL_GPIO_WritePin(LED_A, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_A, GPIO_PIN_RESET);
+	if(code & SEG7_B) HAL_GPIO_WritePin(LED_B, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_B, GPIO_PIN_RESET);
+	if(code & SEG7_C) HAL_GPIO_WritePin(LED_C, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_C, GPIO_PIN_RESET);
+	if(code & SEG7_D) HAL_GPIO_WritePin(LED_D, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_D, GPIO_PIN_RESET);
+	if(code & SEG7_E) HAL_GPIO_WritePin(LED_E, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_E, GPIO_PIN_RESET);
+	if(code & SEG7_F) HAL_GPIO_WritePin(LED_F, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_F, GPIO_PIN_RESET);
+	if(code & SEG7_G) HAL_GPIO_WritePin(LED_G, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_G, GPIO_PIN_RESET);
+	if(code & SEG7_DP) HAL_GPIO_WritePin(LED_DP, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
+}
+
+void write_to_display(float val) {
+	if(systick_counter % 3 == 0) {
+		display_num(get_display_leds((int)(val * 100) % 100));
+		HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(DIG_SEL_ONES, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(DIG_SEL_TENTHS, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(DIG_SEL_HUNDREDTHS, GPIO_PIN_RESET);
+	} else if(systick_counter % 3 == 1) {
+		display_num(get_display_leds((int)(val * 10) % 10));
+		HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(DIG_SEL_ONES, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(DIG_SEL_TENTHS, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(DIG_SEL_HUNDREDTHS, GPIO_PIN_RESET);
+	} else {
+		display_num(get_display_leds((int)val));
+		HAL_GPIO_WritePin(LED_DP, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(DIG_SEL_ONES, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(DIG_SEL_TENTHS, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(DIG_SEL_HUNDREDTHS, GPIO_PIN_SET);
+	}
+}
+
+void shut_off_display(void) {
+	HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(DIG_SEL_ONES, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(DIG_SEL_TENTHS, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(DIG_SEL_HUNDREDTHS, GPIO_PIN_RESET);
+}
 
 /**
 * @brief This function handles System tick timer.
@@ -61,6 +123,38 @@ void SysTick_Handler(void)
 
   /* USER CODE END SysTick_IRQn 1 */
 }
+
+//void SysTick_Handler(void)
+//{
+//	counter++;
+//	systick_counter++;
+//	if (systick_counter % 400 == 0) state_counter++;
+//	if(counter % 100 == 0) col = (col + 1) % 3;
+//  /* USER CODE BEGIN SysTick_IRQn 0 */
+
+//  /* USER CODE END SysTick_IRQn 0 */
+//  HAL_IncTick();
+//  HAL_SYSTICK_IRQHandler();
+//  if(holding) hold_count++;
+//  /* USER CODE BEGIN SysTick_IRQn 1 */
+
+//  /* USER CODE END SysTick_IRQn 1 */
+//  switch(state) {
+//	  case FIRST_KEY:
+//		  write_to_display(the_reading);
+//		  break;
+//	  case SECOND_KEY:
+//		  write_to_display(temp_voltage);
+//		  break;
+//	  case WAIT:
+//		  write_to_display(temp_voltage);
+//		  break;
+//	  case SLEEP:
+//		  shut_off_display();
+//		  break;
+//  }
+//}
+
 
 /******************************************************************************/
 /* STM32F4xx Peripheral Interrupt Handlers                                    */

@@ -22,11 +22,15 @@ lab4\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_gpio_ex.h
 lab4\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h
 lab4\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma_ex.h
 lab4\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_cortex.h
+lab4\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_adc.h
+lab4\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_adc_ex.h
 lab4\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash.h
 lab4\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ex.h
 lab4\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ramfunc.h
 lab4\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h
 lab4\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h
+lab4\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h
+lab4\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h
 lab4\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h
 lab4\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
 lab4\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
@@ -42,3 +46,4 @@ lab4\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h
 lab4\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h
 lab4\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h
 lab4\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h
+lab4\main.o: ../Inc/voltmeter.h
