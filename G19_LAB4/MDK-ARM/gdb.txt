@@ -1,0 +1,39 @@
+Continuing.
+
+Program received signal SIGTRAP, Trace/breakpoint trap.
+0x080008c2 in FSMController (argument=<optimized out>) at ../Src/main.c:551
+551				switch(state) {
+Continuing.
+
+Program received signal SIGTRAP, Trace/breakpoint trap.
+0x080008c2 in FSMController (argument=<optimized out>) at ../Src/main.c:551
+551				switch(state) {
+Num     Type           Disp Enb Address    What
+1       breakpoint     keep y   0x0800224e in main at ../Src/main.c:121
+	breakpoint already hit 1 time
+2       hw watchpoint  keep y              reading
+Num     Type           Disp Enb Address    What
+1       breakpoint     keep n   0x0800224e in main at ../Src/main.c:121
+	breakpoint already hit 1 time
+2       hw watchpoint  keep y              reading
+Continuing.
+
+Program received signal SIGTRAP, Trace/breakpoint trap.
+0x080008c2 in FSMController (argument=<optimized out>) at ../Src/main.c:551
+551				switch(state) {
+$1 = -1
+Continuing.
+
+Program received signal SIGTRAP, Trace/breakpoint trap.
+0x08001ae6 in KeypadHandler (argument=<optimized out>) at ../Src/main.c:687
+687			else if (GPIOD->IDR & GPIO_PIN_7) reading = keypad_matrix[cur_col][3];
+$2 = 1
+Continuing.
+
+Program received signal SIGTRAP, Trace/breakpoint trap.
+0x080008c2 in FSMController (argument=<optimized out>) at ../Src/main.c:551
+551				switch(state) {
+$3 = -1
+Continuing.
+Error detected on fd 13
+Remote communication error.  Target disconnected.: Resource temporarily unavailable.
