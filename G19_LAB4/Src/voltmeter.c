@@ -103,6 +103,56 @@ void plot_point(float input, float* output) {
 	point_count %= RMS_UPDATE_WINDOW;
 }
 
+void display_num(char code) {
+	if(code & SEG7_A) HAL_GPIO_WritePin(LED_A, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_A, GPIO_PIN_RESET);
+	if(code & SEG7_B) HAL_GPIO_WritePin(LED_B, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_B, GPIO_PIN_RESET);
+	if(code & SEG7_C) HAL_GPIO_WritePin(LED_C, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_C, GPIO_PIN_RESET);
+	if(code & SEG7_D) HAL_GPIO_WritePin(LED_D, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_D, GPIO_PIN_RESET);
+	if(code & SEG7_E) HAL_GPIO_WritePin(LED_E, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_E, GPIO_PIN_RESET);
+	if(code & SEG7_F) HAL_GPIO_WritePin(LED_F, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_F, GPIO_PIN_RESET);
+	if(code & SEG7_G) HAL_GPIO_WritePin(LED_G, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_G, GPIO_PIN_RESET);
+	if(code & SEG7_DP) HAL_GPIO_WritePin(LED_DP, GPIO_PIN_SET);
+	else HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
+}
+
+void write_to_display(float val) {
+	static int display_counter = 0;
+	if(display_counter % 3 == 0) {
+		display_num(get_display_leds((int)(val * 100) % 100));
+		HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(DIG_SEL_ONES, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(DIG_SEL_TENTHS, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(DIG_SEL_HUNDREDTHS, GPIO_PIN_RESET);
+	} else if(display_counter % 3 == 1) {
+		display_num(get_display_leds((int)(val * 10) % 10));
+		HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(DIG_SEL_ONES, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(DIG_SEL_TENTHS, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(DIG_SEL_HUNDREDTHS, GPIO_PIN_RESET);
+	} else {
+		display_num(get_display_leds((int)val));
+		HAL_GPIO_WritePin(LED_DP, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(DIG_SEL_ONES, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(DIG_SEL_TENTHS, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(DIG_SEL_HUNDREDTHS, GPIO_PIN_SET);
+	}
+	display_counter++;
+}
+
+void shut_off_display(void) {
+	HAL_GPIO_WritePin(LED_DP, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(DIG_SEL_ONES, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(DIG_SEL_TENTHS, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(DIG_SEL_HUNDREDTHS, GPIO_PIN_RESET);
+}
+
 void adjust_pwm(float cur, float target) {
 	float diff = target - cur;
 	duty_cycle += diff * P_CONSTANT;

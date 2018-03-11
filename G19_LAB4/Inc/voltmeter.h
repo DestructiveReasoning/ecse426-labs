@@ -62,4 +62,8 @@ void plot_point(float, float *);
 char get_display_leds(int);
 void adjust_pwm(float, float);
 
+void display_num(char);
+void write_to_display(float);
+void shut_off_display();
+
 #endif

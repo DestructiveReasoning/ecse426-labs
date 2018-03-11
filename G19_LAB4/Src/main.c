@@ -65,6 +65,7 @@ TIM_HandleTypeDef htim3;
 osThreadId timerHandle;
 osThreadId fsmHandle;
 osThreadId keypadHandle;
+osThreadId displayHandle;
 osSemaphoreId myBinarySem01Handle;
 osSemaphoreId keyboardSem;
 
@@ -78,6 +79,7 @@ static void MX_TIM2_Init(void);
 void GeneralTimer(void const * argument);
 void FSMController(void const * argument);
 void KeypadHandler(void const *argument);
+void DisplayRenderer(void const *argument);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
@@ -85,7 +87,6 @@ TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 
 int counter = 0;
-int systick_counter = 0;
 int pmode = 0;
 int target = 1;
 int reading = -1;
@@ -113,6 +114,7 @@ int keypad_matrix[3][4];
  */
 uint64_t time = 0;
 uint64_t state_counter = 0;
+int display_counter = 0;
 
 uint32_t keySig = 0;
 
@@ -162,6 +164,9 @@ int main(void)
 
 	osThreadDef(keypadTask, KeypadHandler, osPriorityNormal, 0, 256);
 	keypadHandle = osThreadCreate(osThread(keypadTask), NULL);
+
+	osThreadDef(displayTask, DisplayRenderer, osPriorityNormal, 0, 128);
+	displayHandle = osThreadCreate(osThread(displayTask), NULL);
 
 	/* Start scheduler */
 	osKernelStart();
@@ -538,6 +543,7 @@ void GeneralTimer(void const * argument) {
 		time++;
 		if(time % 400 == 0) state_counter++;
 		if(time % 100 == 0) col++;
+		if(time % 5 == 0) display_counter++;
 		if(holding) hold_count++;
 	}
 }
@@ -700,6 +706,13 @@ void KeypadHandler(void const * argument) {
 //			cur_col = 2;
 //			osSignalSet(fsmHandle, keySig);
 //		}
+	}
+}
+
+void DisplayRenderer(void const *argument) {
+	while(1) {
+		write_to_display(5.0);
+		osDelay(2);
 	}
 }
 
