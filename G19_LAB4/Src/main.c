@@ -148,7 +148,7 @@ int main(void)
 	// Start TIM2 Timer
 	HAL_TIM_Base_Start(&htim2);
 	// Start ADC
-	HAL_ADC_Start_IT(&hadc1);
+//	HAL_ADC_Start_IT(&hadc1);
 
 	osSemaphoreDef(myBinarySem01);
 	myBinarySem01Handle = osSemaphoreCreate(osSemaphore(myBinarySem01), 1);
@@ -176,7 +176,6 @@ int main(void)
 	{
 
 	}
-
 }
 
 /** System Clock Configuration
@@ -263,7 +262,7 @@ static void MX_ADC1_Init(void)
 	*/
 	sConfig.Channel = ADC_CHANNEL_1;
 	sConfig.Rank = 1;
-	sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+	sConfig.SamplingTime = ADC_SAMPLETIME_28CYCLES;
 	if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
 	{
 		_Error_Handler(__FILE__, __LINE__);
@@ -711,9 +710,34 @@ void KeypadHandler(void const * argument) {
 
 void DisplayRenderer(void const *argument) {
 	while(1) {
-		write_to_display(5.0);
+		switch(state) {
+			case FIRST_KEY:
+				write_to_display(the_reading);
+				break;
+			case SECOND_KEY:
+			case WAIT:
+				write_to_display(temp_voltage);
+				break;
+			case SLEEP:
+				shut_off_display();
+				break;
+			default:
+				break;
+		}
 		osDelay(2);
 	}
+}
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+{
+  /* Prevent unused argument(s) compilation warning */
+	UNUSED(hadc);
+	adc_value = HAL_ADC_GetValue(&hadc1);
+	//float filtered_val;
+	FIR_C(adc_value, &filtered_val);
+	float voltage_reading = 3.0 * filtered_val / ((1 << ADC_RES) - 1.0);
+	plot_point(voltage_reading, &the_reading);
+	adjust_pwm(voltage_reading, target_voltage);
 }
 
 /**

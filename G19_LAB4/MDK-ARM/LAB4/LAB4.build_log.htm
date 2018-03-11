@@ -27,22 +27,15 @@ Project File Date:  03/11/2018
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 5 (build 528)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'LAB4'
-compiling voltmeter.c...
-../Inc/voltmeter.h(67): warning:  #1295-D: Deprecated declaration shut_off_display - give arg types
-  void shut_off_display();
-..\Src\voltmeter.c(158): warning:  #1035-D: single-precision operand implicitly converted to double-precision
-  	duty_cycle += diff * 
-_CONSTANT;
-..\Src\voltmeter.c(159): warning:  #1035-D: single-precision operand implicitly converted to double-precision
-  	if(duty_cycle < 0.0) duty_cycle = 0.0;
-..\Src\voltmeter.c(160): warning:  #1035-D: single-precision operand implicitly converted to double-precision
-  	else if(duty_cycle > 1.0) duty_cycle = 1.0;
-..\Src\voltmeter.c(171): warning:  #223-D: function "HAL_TIM_MspPostInit" declared implicitly
-  	HAL_TIM_MspPostInit(&htim3);
-..\Src\voltmeter.c: 5 warnings, 0 errors
+compiling main.c...
+../Src/main.c(599): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+  							temp_voltage += (float) button / 10.0;
+../Src/main.c(740): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+  	float voltage_reading = 3.0 * filtered_val / ((1 << ADC_RES) - 1.0);
+../Src/main.c: 2 warnings, 0 errors
 linking...
-Program Size: Code=15044 RO-data=564 RW-data=216 ZI-data=16864  
-"LAB4\LAB4.axf" - 0 Error(s), 5 Warning(s).
+Program Size: Code=16132 RO-data=604 RW-data=240 ZI-data=16904  
+"LAB4\LAB4.axf" - 0 Error(s), 2 Warning(s).
 
 <h2>Software Packages used:</h2>
 

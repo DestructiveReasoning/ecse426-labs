@@ -64,6 +64,6 @@ void adjust_pwm(float, float);
 
 void display_num(char);
 void write_to_display(float);
-void shut_off_display();
+void shut_off_display(void);
 
 #endif

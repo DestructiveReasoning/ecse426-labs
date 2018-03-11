@@ -154,7 +154,7 @@ void shut_off_display(void) {
 }
 
 void adjust_pwm(float cur, float target) {
-	float diff = target - cur;
+	double diff = target - cur;
 	duty_cycle += diff * P_CONSTANT;
 	if(duty_cycle < 0.0) duty_cycle = 0.0;
 	else if(duty_cycle > 1.0) duty_cycle = 1.0;
