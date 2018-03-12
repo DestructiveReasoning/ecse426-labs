@@ -542,8 +542,8 @@ void GeneralTimer(void const * argument) {
 	while(1) {
 		osDelay(1);
 		time++;
-		if(time % 400 == 0) state_counter++;
-		if(time % 100 == 0) col++;
+		if(time % 150 == 0) state_counter++;
+		if(time % 50 == 0) col++;
 		if(time % 5 == 0) display_counter++;
 		if(holding) hold_count++;
 	}
