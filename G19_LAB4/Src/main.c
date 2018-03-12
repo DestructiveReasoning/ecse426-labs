@@ -148,7 +148,9 @@ int main(void)
 	// Start TIM2 Timer
 	HAL_TIM_Base_Start(&htim2);
 	// Start ADC
-//	HAL_ADC_Start_IT(&hadc1);
+	HAL_ADC_Start_IT(&hadc1);
+
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 
 	osSemaphoreDef(myBinarySem01);
 	myBinarySem01Handle = osSemaphoreCreate(osSemaphore(myBinarySem01), 1);
@@ -278,9 +280,9 @@ static void MX_TIM2_Init(void)
 	TIM_MasterConfigTypeDef sMasterConfig;
 
 	htim2.Instance = TIM2;
-	htim2.Init.Prescaler = 10;
+	htim2.Init.Prescaler = 83999;
 	htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim2.Init.Period = 0;
+	htim2.Init.Period = 1;
 	htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
 	{
@@ -312,7 +314,7 @@ static void MX_TIM3_Init(void)
 	htim3.Instance = TIM3;
 	htim3.Init.Prescaler = 0;
 	htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim3.Init.Period = 0;
+	htim3.Init.Period = PWM_PERIOD;
 	htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
 	{
@@ -327,7 +329,7 @@ static void MX_TIM3_Init(void)
 	}
 
 	sConfigOC.OCMode = TIM_OCMODE_PWM1;
-	sConfigOC.Pulse = 0;
+	sConfigOC.Pulse = duty_cycle * PWM_PERIOD;
 	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
 	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
 	if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
