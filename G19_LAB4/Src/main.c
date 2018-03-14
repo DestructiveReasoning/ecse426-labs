@@ -55,7 +55,7 @@
 #define HASH 12
 #define SYSTICK_FREQUENCY 1000
 #define ADC_RES 8
-#define KEYPAD_PERIOD 60
+#define KEYPAD_PERIOD 100
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
