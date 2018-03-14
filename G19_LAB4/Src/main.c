@@ -55,6 +55,7 @@
 #define HASH 12
 #define SYSTICK_FREQUENCY 1000
 #define ADC_RES 8
+#define KEYPAD_PERIOD 60
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
@@ -66,8 +67,10 @@ osThreadId timerHandle;
 osThreadId fsmHandle;
 osThreadId keypadHandle;
 osThreadId displayHandle;
+osThreadId keypadTimerHandle;
 osSemaphoreId myBinarySem01Handle;
 osSemaphoreId keyboardSem;
+osSemaphoreId wakeupSem;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
@@ -80,11 +83,19 @@ void GeneralTimer(void const * argument);
 void FSMController(void const * argument);
 void KeypadHandler(void const *argument);
 void DisplayRenderer(void const *argument);
+void KeypadTimer(void const * argument);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
+
+osThreadDef(timerTask, GeneralTimer, osPriorityHigh, 0, 128);
+osThreadDef(fsmTask, FSMController, osPriorityNormal, 0, 256);
+osThreadDef(keypadTask, KeypadHandler, osPriorityNormal, 0, 256);
+osThreadDef(displayTask, DisplayRenderer, osPriorityNormal, 0, 128);
+osThreadDef(keypadTimerTask, KeypadTimer, osPriorityHigh, 0, 128);
+
 
 int counter = 0;
 int pmode = 0;
@@ -95,6 +106,7 @@ float target_voltage = 1.0;
 float the_reading = 0.0;
 float filtered_val;
 int button = -1;
+int wakeup = 0;
 
 float duty_cycle = 0.5;
 
@@ -157,18 +169,18 @@ int main(void)
 
 	osSemaphoreDef(keySem);
 	keyboardSem = osSemaphoreCreate(osSemaphore(keySem), 1);
+	osSemaphoreDef(wakeSem);
+	wakeupSem = osSemaphoreCreate(osSemaphore(wakeSem), 1);
 
-	osThreadDef(timerTask, GeneralTimer, osPriorityHigh, 0, 128);
 	timerHandle = osThreadCreate(osThread(timerTask), NULL);
 
-	osThreadDef(fsmTask, FSMController, osPriorityNormal, 0, 256);
 	fsmHandle = osThreadCreate(osThread(fsmTask), NULL);
-
-	osThreadDef(keypadTask, KeypadHandler, osPriorityNormal, 0, 256);
+	
 	keypadHandle = osThreadCreate(osThread(keypadTask), NULL);
 
-	osThreadDef(displayTask, DisplayRenderer, osPriorityNormal, 0, 128);
 	displayHandle = osThreadCreate(osThread(displayTask), NULL);
+	
+	keypadTimerHandle = osThreadCreate(osThread(keypadTimerTask), NULL);
 
 	/* Start scheduler */
 	osKernelStart();
@@ -543,9 +555,27 @@ void GeneralTimer(void const * argument) {
 		osDelay(1);
 		time++;
 		if(time % 180 == 0) state_counter++;
-		if(time % 60 == 0) col++;
 		if(time % 5 == 0) display_counter++;
-		if(holding) hold_count++;
+	}
+}
+
+void KeypadTimer(void const * argument) {
+	while(1) {
+		osDelay(KEYPAD_PERIOD);
+		col++;
+		if (holding) hold_count++;
+		if (state == SLEEP) {
+			osSemaphoreWait(wakeupSem, osWaitForever);
+			wakeup++;
+			
+			if(wakeup >= 3 * SYSTICK_FREQUENCY / KEYPAD_PERIOD) {
+				timerHandle = osThreadCreate(osThread(timerTask), NULL);
+				fsmHandle = osThreadCreate(osThread(fsmTask), NULL);
+				displayHandle = osThreadCreate(osThread(displayTask), NULL);
+				wakeup = 0;
+			}
+			osSemaphoreRelease(wakeupSem);
+		}
 	}
 }
 
@@ -554,7 +584,7 @@ void FSMController(void const * argument) {
 	while(1) {
 		button = -1;
 		if (state_counter != last_state) {
-			osSignalWait(keySig, 0);
+			osSignalWait(keySig, osWaitForever);
 			keySig = 0;
 			last_state = state_counter;
 			osSemaphoreWait(keyboardSem, osWaitForever);
@@ -571,9 +601,9 @@ void FSMController(void const * argument) {
 						hold_count = 0;
 					} else if(button == STAR) {
 						holding = 1;
-						if(hold_count > 3 * SYSTICK_FREQUENCY) {
+						if(hold_count > 3 * SYSTICK_FREQUENCY / KEYPAD_PERIOD) {
 							state = SLEEP;
-						} else if(hold_count > 1 * SYSTICK_FREQUENCY) {
+						} else if(hold_count > 1 * SYSTICK_FREQUENCY / KEYPAD_PERIOD) {
 							state = FIRST_KEY;
 							target_voltage = 0.0;
 						}
@@ -585,9 +615,9 @@ void FSMController(void const * argument) {
 				case SECOND_KEY:
 					if(button == STAR) {
 						holding = 1;
-						if(hold_count > 3 * SYSTICK_FREQUENCY) {
+						if(hold_count > 3 * SYSTICK_FREQUENCY / KEYPAD_PERIOD) {
 							state = SLEEP;
-						} else if(hold_count > 1 * SYSTICK_FREQUENCY) {
+						} else if(hold_count > 1 * SYSTICK_FREQUENCY / KEYPAD_PERIOD) {
 							state = FIRST_KEY;
 							target_voltage = 0.0;
 						} else {
@@ -608,9 +638,9 @@ void FSMController(void const * argument) {
 				case WAIT:
 					if(button == STAR) {
 						holding = 1;
-						if(hold_count > 3 * SYSTICK_FREQUENCY) {
+						if(hold_count > 3 * SYSTICK_FREQUENCY / KEYPAD_PERIOD) {
 							state = SLEEP;
-						} else if(hold_count > 1 * SYSTICK_FREQUENCY) {
+						} else if(hold_count > 1 * SYSTICK_FREQUENCY / KEYPAD_PERIOD) {
 							state = FIRST_KEY;
 							target_voltage = 0.0;
 						} else {
@@ -624,18 +654,22 @@ void FSMController(void const * argument) {
 					break;
 				case SLEEP:
 					target_voltage = 0.0;
-					if(button == HASH) {
-						holding = 1;
-						if(hold_count >= 3 * SYSTICK_FREQUENCY) {
-							state = FIRST_KEY;
-							holding = 0;
-							hold_count = 0;
-						}
-					} else {
-						holding = 0;
-						hold_count = 0;
-					}
-					break;
+//					if(button == HASH) {
+//						holding = 1;
+//						if(hold_count >= 3 * SYSTICK_FREQUENCY / KEYPAD_PERIOD) {
+//							state = FIRST_KEY;
+//							holding = 0;
+//							hold_count = 0;
+//						}
+//					} else {
+//						holding = 0;
+//						hold_count = 0;
+//					}
+					//break;
+				// Turn these threads off
+					osThreadTerminate(displayHandle);
+					osThreadTerminate(timerHandle);
+					return;
 			}
 		}
 		switch(state) {
@@ -675,6 +709,11 @@ void KeypadHandler(void const * argument) {
 			cur_col = (cur_col + 1) % 3;
 			if(cur_col == 0) {
 				osSignalSet(fsmHandle, keySig);
+				if(state == SLEEP && reading != HASH) {
+					osSemaphoreWait(wakeupSem, osWaitForever);
+					//wakeup = 0;
+					osSemaphoreRelease(wakeupSem);
+				} else if(state == SLEEP) reading = -1;
 			}
 			//cur_col = 0;
 			switch(cur_col) {
