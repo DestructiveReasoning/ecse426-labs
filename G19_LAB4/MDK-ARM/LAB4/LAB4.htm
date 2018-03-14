@@ -3,7 +3,7 @@
 <title>Static Call Graph - [LAB4\LAB4.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image LAB4\LAB4.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Wed Mar 14 16:18:49 2018
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060528: Last Updated: Wed Mar 14 18:54:45 2018
 <BR><P>
 <H3>Maximum Stack Usage =        200 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -925,7 +925,7 @@ Global Symbols
 <LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[62]"></a>KeypadHandler</STRONG> (Thumb, 244 bytes, Stack size 0 bytes, main.o(i.KeypadHandler))
+<P><STRONG><a name="[62]"></a>KeypadHandler</STRONG> (Thumb, 296 bytes, Stack size 0 bytes, main.o(i.KeypadHandler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 136<LI>Call Chain = KeypadHandler &rArr; osSemaphoreWait &rArr; xQueueGenericReceive &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ac]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSignalSet
@@ -935,7 +935,7 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> main.o(.constdata)
 </UL>
-<P><STRONG><a name="[64]"></a>KeypadTimer</STRONG> (Thumb, 94 bytes, Stack size 0 bytes, main.o(i.KeypadTimer))
+<P><STRONG><a name="[64]"></a>KeypadTimer</STRONG> (Thumb, 96 bytes, Stack size 0 bytes, main.o(i.KeypadTimer))
 <BR><BR>[Stack]<UL><LI>Max Depth = 160<LI>Call Chain = KeypadTimer &rArr; osThreadCreate &rArr; xTaskCreate &rArr; pvPortMalloc &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ad]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osThreadCreate

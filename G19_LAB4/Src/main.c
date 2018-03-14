@@ -572,6 +572,7 @@ void KeypadTimer(void const * argument) {
 				timerHandle = osThreadCreate(osThread(timerTask), NULL);
 				fsmHandle = osThreadCreate(osThread(fsmTask), NULL);
 				displayHandle = osThreadCreate(osThread(displayTask), NULL);
+				state = FIRST_KEY;
 				wakeup = 0;
 			}
 			osSemaphoreRelease(wakeupSem);
@@ -708,12 +709,18 @@ void KeypadHandler(void const * argument) {
 			last_col = col;
 			cur_col = (cur_col + 1) % 3;
 			if(cur_col == 0) {
-				osSignalSet(fsmHandle, keySig);
 				if(state == SLEEP && reading != HASH) {
 					osSemaphoreWait(wakeupSem, osWaitForever);
-					//wakeup = 0;
+					wakeup = 0;
 					osSemaphoreRelease(wakeupSem);
-				} else if(state == SLEEP) reading = -1;
+					HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
+					HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
+				} else if(state == SLEEP){
+					reading = -1;
+					HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_SET);
+				}
+				else osSignalSet(fsmHandle, keySig);
 			}
 			//cur_col = 0;
 			switch(cur_col) {
