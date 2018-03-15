@@ -1,0 +1,145 @@
+\documentclass[12pt]{report}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{courier}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{tikz}
+\usepackage{circuitikz}
+\usetikzlibrary{shapes,arrows}
+\usepackage[margin=2cm]{geometry}
+
+\title{ECSE 426 - Microprocessor Systems\\Lab Report 2: Timers, Interrupts, Multithreaded, Interrupt-Driven Readings and Peripheral Control}
+\author{Harley Wiltzer (260690006)\\Matthew Lesko (260692352)}
+\date{March 19, 2018}
+
+\definecolor{dblue}{rgb}{0.4,0.4,0.8}
+
+\hypersetup {
+	colorlinks=true,
+	linkcolor=dblue
+}
+
+\tikzstyle{decision} = [diamond, draw, fill=blue!20, text badly centered, text width=2cm, node
+distance=3cm]
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, text centered, rounded corners, minimum
+height=4em, text width=3cm, node distance=5cm]
+\tikzstyle{goal} = [rectangle, draw, fill=yellow!20, text centered, rounded corners, minimum
+height=4em, text width=3cm, node distance=5cm]
+\tikzstyle{line} = [draw, -latex']
+\tikzstyle{cloud} = [draw, ellipse, fill=red!20, node distance=7cm, text centered, text width=2cm]
+\tikzstyle{label} = [draw, rectangle, text centered, text width = 3cm]
+
+\renewcommand*\thesection{\arabic{section}}
+
+\begin{document}
+\maketitle
+\pagenumbering{roman}
+\tableofcontents
+%\let\clearpage\relax
+\listoffigures
+\let\clearpage\relax
+\listoftables
+\newpage
+\pagenumbering{arabic}
+\section{Abstract}
+The purpose of experiment 3 is for the programmers to gain experience in utilizing timers and interrupts to accomplish a task which involves converting an analog pulse to digital and displaying its voltage on an LED display, effectively a voltmeter. The purpose of experiment 4 is for the programmers to gain exposure in designing a multithreaded application on a real time operating system (RTOS) running on an embedded system. The task of experiment 4 involves copying over experiment 3's program and subdiving several of its features each to its own concurrently running thread, with the goal of optimizing power usage. This report will explain in detail how the programmers implemented the problems stated below, as well as the challenges they faced, the testing they had done, and the conclusions they have made. By the end of the report, the reader shall understand how the timers available on the STM32F4 board can be used to activate peripherals and generate a pulse, and understand the implementation of multithreading on embedded systems.
+\section{Problem Statement}
+The problem is for the developers to implement a solution for generating a PWM pulse, whose voltage is set by an input on a keypad, that is fed to a rectifier and have the output fed to an ADC to be converted to a digital signal, and finally having its voltage be automatically displayed on an LED display. Furthermore, the program has to be implemented with the use of concurrently-running threads running on an RTOS. The problem can be divided into the following tasks:
+\begin{itemize}
+	\item Setting up a timer to act as a PWM pulse generator
+	\item Configuration of the ADC to be activated by a timer
+	\item Design of a rectifier circuit component that takes the PWM pulse as input and have its output be converted to digital by an ADC
+	\item Testing and Optimization of an FIR Filter that reduces noise from the output of the rectifier
+	\item Setting up the alphanumeric keypad so that the user may input their desired voltage to be displayed
+	\item Mainting the 7-segment display
+	\item Coding a controller component that automates the changes to be made on the PWM's duty cycle so that the correct voltage appears on the LED display
+	\item Implementation of the program's features using CMSIS-RTOS and multithreading
+	\item Reducing the power consumption of the product when it is in sleep mode using CMSIS-RTOS
+\end{itemize}
+\section{Theory and Hypothesis}
+\subsection{Theory}
+\subsection{Hypothesis}
+\section{Implementation}
+\section{Testing and Observations}
+\section{Conclusion}
+\newpage
+\begin{appendix}\label{appendices}
+	\chapter{GPIO Configuration Parameters}\label{appendixgpio}
+	This appendix lists the configuration parameters set for each of the different GPIO pins (or
+	classes of GPIO pins).\\\\
+	\textbf{User Input Button}\\
+	\begin{tabular}{|c|c|}
+		\hline
+		Parameter & Value\\\hline
+		Mode & \texttt{GPIO\_MODE\_IT\_RISING}\\\hline
+		Pull & \texttt{GPIO\_NOPULL}\\\hline
+	\end{tabular}
+	\newline
+	\\\\
+	\textbf{Display Mode LEDs (4 of these)}\\
+	\begin{tabular}{|c|c|}
+		\hline
+		Parameter & Value\\\hline
+		Mode & \texttt{GPIO\_MODE\_OUTPUT\_PP}\\\hline
+		Pull & \texttt{GPIO\_NOPULL}\\\hline
+		Speed & \texttt{GPIO\_SPEED\_FREQ\_LOW}\\\hline
+	\end{tabular}
+	\newline
+	\\\\
+	\textbf{Display Segment Pins (8 of these)}\\
+	\begin{tabular}{|c|c|}
+		\hline
+		Parameter & Value\\\hline
+		Mode & \texttt{GPIO\_MODE\_OUTPUT\_PP}\\\hline
+		Pull & \texttt{GPIO\_NOPULL}\\\hline
+		Speed & \texttt{GPIO\_SPEED\_FREQ\_LOW}\\\hline
+	\end{tabular}
+	\newline
+	\\\\
+	\textbf{Display Selector Pins (3 of these)}\\
+	\begin{tabular}{|c|c|}
+		\hline
+		Parameter & Value\\\hline
+		Mode & \texttt{GPIO\_MODE\_OUTPUT\_PP}\\\hline
+		Pull & \texttt{GPIO\_NOPULL}\\\hline
+		Speed & \texttt{GPIO\_SPEED\_FREQ\_LOW}\\\hline
+	\end{tabular}
+	\newline
+	\newpage
+	\chapter{ADC Configuration Settings}\label{appendixadc}
+	\textbf{ADC Instance Parameters}\\
+	\begin{tabular}{|c|c|}
+		\hline
+		Parameter & Value\\\hline
+		Clock Prescaler & \texttt{ADC\_CLOCK\_SYNC\_PCLK\_DIV2}\\\hline
+		Resolution & \texttt{ADC\_RESOLUTION\_8B}\\\hline
+		Scan Conversion Mode & Disabled\\\hline
+		Continuous Conversion Mode & Disabled\\\hline
+		Discontinuous Conversion Mode & Disabled\\\hline
+		External Trigger Conversion Edge & \texttt{ADC\_EXTERNALTRIGCONVEDGE\_RISING}\\\hline
+		External Trigger Conversion & \texttt{ADC\_SOFTWARE\_START}\\\hline
+		Data Alignment & \texttt{ADC\_DATAALIGN\_RIGHT}\\\hline
+		Number of Conversions & 1\\\hline
+		DMA Continuous Requests & Disabled\\\hline
+		EOC Selection & \texttt{ADC\_EOC\_SINGLE\_CONV}\\\hline
+	\end{tabular}
+	\newline
+	\\\\
+	\textbf{ADC Channel Parameters (Channel 1)}\\
+	\begin{tabular}{|c|c|}
+		\hline
+		Parameter & Value\\\hline
+		Rank & 1\\\hline
+		Sampling Time & \texttt{ADC\_SAMPLETIME\_3CYCLES}\\\hline
+	\end{tabular}
+	\newpage
+	\chapter{HAL Cube MX Autogenerated Code}\label{mammoth}
+	\begin{lstlisting}[basicstyle=\scriptsize\ttfamily]
+	\end{lstlisting}
+	
+	\newpage
+	\chapter{Theory References}
+\end{appendix}
+\end{document}
