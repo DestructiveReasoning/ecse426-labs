@@ -573,6 +573,9 @@ void KeypadTimer(void const * argument) {
 				fsmHandle = osThreadCreate(osThread(fsmTask), NULL);
 				displayHandle = osThreadCreate(osThread(displayTask), NULL);
 				state = FIRST_KEY;
+				HAL_TIM_Base_Start(&htim2);
+				HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+				HAL_ADC_Start_IT(&hadc1);
 				wakeup = 0;
 			}
 			osSemaphoreRelease(wakeupSem);
@@ -655,19 +658,10 @@ void FSMController(void const * argument) {
 					break;
 				case SLEEP:
 					target_voltage = 0.0;
-//					if(button == HASH) {
-//						holding = 1;
-//						if(hold_count >= 3 * SYSTICK_FREQUENCY / KEYPAD_PERIOD) {
-//							state = FIRST_KEY;
-//							holding = 0;
-//							hold_count = 0;
-//						}
-//					} else {
-//						holding = 0;
-//						hold_count = 0;
-//					}
-					//break;
-				// Turn these threads off
+					// Turning off timers, adc, and threads
+					HAL_TIM_Base_Stop(&htim2);
+					HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
+					HAL_ADC_Stop_IT(&hadc1);
 					osThreadTerminate(displayHandle);
 					osThreadTerminate(timerHandle);
 					return;
