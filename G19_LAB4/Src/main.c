@@ -63,7 +63,6 @@ ADC_HandleTypeDef hadc1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 
-osThreadId timerHandle;
 osThreadId fsmHandle;
 osThreadId keypadHandle;
 osThreadId displayHandle;
@@ -79,23 +78,21 @@ static void MX_ADC1_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM2_Init(void);
 
-void GeneralTimer(void const * argument);
-void FSMController(void const * argument);
+void GeneralTimer(void const *argument);
+void FSMController(void const *argument);
 void KeypadHandler(void const *argument);
 void DisplayRenderer(void const *argument);
-void KeypadTimer(void const * argument);
+void KeypadTimer(void const *argument);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 
-osThreadDef(timerTask, GeneralTimer, osPriorityHigh, 0, 128);
 osThreadDef(fsmTask, FSMController, osPriorityNormal, 0, 256);
 osThreadDef(keypadTask, KeypadHandler, osPriorityNormal, 0, 256);
 osThreadDef(displayTask, DisplayRenderer, osPriorityNormal, 0, 128);
 osThreadDef(keypadTimerTask, KeypadTimer, osPriorityHigh, 0, 128);
-
 
 int counter = 0;
 int pmode = 0;
@@ -113,20 +110,10 @@ float duty_cycle = 0.5;
 int state = FIRST_KEY;
 int col = 0;
 int cur_col = 0;
-
 uint8_t adc_value;
-
 int holding = 0;
 int hold_count = 0;
-
 int keypad_matrix[3][4];
-
-/*
- * TIMER VARIABLES
- */
-uint64_t time = 0;
-uint64_t state_counter = 0;
-int display_counter = 0;
 
 uint32_t keySig = 0;
 
@@ -143,7 +130,7 @@ int main(void)
 	keypad_matrix[2][0] = 3;
 	keypad_matrix[2][1] = 6;
 	keypad_matrix[2][2] = 9;
-	keypad_matrix[2][3] = HASH;             
+	keypad_matrix[2][3] = HASH;
 
 	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
 	HAL_Init();
@@ -172,14 +159,12 @@ int main(void)
 	osSemaphoreDef(wakeSem);
 	wakeupSem = osSemaphoreCreate(osSemaphore(wakeSem), 1);
 
-	timerHandle = osThreadCreate(osThread(timerTask), NULL);
-
 	fsmHandle = osThreadCreate(osThread(fsmTask), NULL);
-	
+
 	keypadHandle = osThreadCreate(osThread(keypadTask), NULL);
 
 	displayHandle = osThreadCreate(osThread(displayTask), NULL);
-	
+
 	keypadTimerHandle = osThreadCreate(osThread(keypadTimerTask), NULL);
 
 	/* Start scheduler */
@@ -188,7 +173,6 @@ int main(void)
 	/* We should never get here as control is now taken by the scheduler */
 	while (1)
 	{
-
 	}
 }
 
@@ -223,8 +207,7 @@ void SystemClock_Config(void)
 
 	/**Initializes the CPU, AHB and APB busses clocks 
 	*/
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-		|RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
 	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
 	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
 	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
@@ -237,7 +220,7 @@ void SystemClock_Config(void)
 
 	/**Configure the Systick interrupt time 
 	*/
-	HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
+	HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq() / 1000);
 
 	/**Configure the Systick 
 	*/
@@ -281,7 +264,6 @@ static void MX_ADC1_Init(void)
 	{
 		_Error_Handler(__FILE__, __LINE__);
 	}
-
 }
 
 /* TIM2 init function */
@@ -313,7 +295,6 @@ static void MX_TIM2_Init(void)
 	{
 		_Error_Handler(__FILE__, __LINE__);
 	}
-
 }
 
 /* TIM3 init function */
@@ -350,7 +331,6 @@ static void MX_TIM3_Init(void)
 	}
 
 	HAL_TIM_MspPostInit(&htim3);
-
 }
 
 /** Configure pins as 
@@ -395,8 +375,7 @@ static void MX_GPIO_Init(void)
 	HAL_GPIO_WritePin(OTG_FS_PowerSwitchOn_GPIO_Port, OTG_FS_PowerSwitchOn_Pin, GPIO_PIN_SET);
 
 	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOD, LD4_Pin|LD3_Pin|LD5_Pin|LD6_Pin 
-			|Audio_RST_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOD, LD4_Pin | LD3_Pin | LD5_Pin | LD6_Pin | Audio_RST_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin : CS_I2C_SPI_Pin */
 	GPIO_InitStruct.Pin = CS_I2C_SPI_Pin;
@@ -435,7 +414,7 @@ static void MX_GPIO_Init(void)
 	HAL_GPIO_Init(I2S3_WS_GPIO_Port, &GPIO_InitStruct);
 
 	/*Configure GPIO pins : SPI1_SCK_Pin SPI1_MISO_Pin SPI1_MOSI_Pin */
-	GPIO_InitStruct.Pin = SPI1_SCK_Pin|SPI1_MISO_Pin|SPI1_MOSI_Pin;
+	GPIO_InitStruct.Pin = SPI1_SCK_Pin | SPI1_MISO_Pin | SPI1_MOSI_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -458,15 +437,14 @@ static void MX_GPIO_Init(void)
 
 	/*Configure GPIO pins : LD4_Pin LD3_Pin LD5_Pin LD6_Pin 
 	  Audio_RST_Pin */
-	GPIO_InitStruct.Pin = LD4_Pin|LD3_Pin|LD5_Pin|LD6_Pin 
-		|Audio_RST_Pin;
+	GPIO_InitStruct.Pin = LD4_Pin | LD3_Pin | LD5_Pin | LD6_Pin | Audio_RST_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
 	/*Configure GPIO pins : I2S3_MCK_Pin I2S3_SCK_Pin I2S3_SD_Pin */
-	GPIO_InitStruct.Pin = I2S3_MCK_Pin|I2S3_SCK_Pin|I2S3_SD_Pin;
+	GPIO_InitStruct.Pin = I2S3_MCK_Pin | I2S3_SCK_Pin | I2S3_SD_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -480,7 +458,7 @@ static void MX_GPIO_Init(void)
 	HAL_GPIO_Init(VBUS_FS_GPIO_Port, &GPIO_InitStruct);
 
 	/*Configure GPIO pins : OTG_FS_ID_Pin OTG_FS_DM_Pin OTG_FS_DP_Pin */
-	GPIO_InitStruct.Pin = OTG_FS_ID_Pin|OTG_FS_DM_Pin|OTG_FS_DP_Pin;
+	GPIO_InitStruct.Pin = OTG_FS_ID_Pin | OTG_FS_DM_Pin | OTG_FS_DP_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -494,7 +472,7 @@ static void MX_GPIO_Init(void)
 	HAL_GPIO_Init(OTG_FS_OverCurrent_GPIO_Port, &GPIO_InitStruct);
 
 	/*Configure GPIO pins : Audio_SCL_Pin Audio_SDA_Pin */
-	GPIO_InitStruct.Pin = Audio_SCL_Pin|Audio_SDA_Pin;
+	GPIO_InitStruct.Pin = Audio_SCL_Pin | Audio_SDA_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -508,12 +486,12 @@ static void MX_GPIO_Init(void)
 	HAL_GPIO_Init(MEMS_INT2_GPIO_Port, &GPIO_InitStruct);
 
 	/*Configure 7 segment pins*/
-	GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_11|GPIO_PIN_10|GPIO_PIN_14|GPIO_PIN_15;
+	GPIO_InitStruct.Pin = GPIO_PIN_7 | GPIO_PIN_11 | GPIO_PIN_10 | GPIO_PIN_14 | GPIO_PIN_15;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
-	GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13;
+	GPIO_InitStruct.Pin = GPIO_PIN_12 | GPIO_PIN_13;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -525,21 +503,21 @@ static void MX_GPIO_Init(void)
 	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
 	/*Configure digit selector pins*/
-	GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_0;
+	GPIO_InitStruct.Pin = GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_0;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
 	/*Configure keypad column pins*/
-	GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_3|GPIO_PIN_1;
+	GPIO_InitStruct.Pin = GPIO_PIN_5 | GPIO_PIN_3 | GPIO_PIN_1;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
 	/*Configure keypad row pins*/
-	GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_7|GPIO_PIN_5;
+	GPIO_InitStruct.Pin = GPIO_PIN_8 | GPIO_PIN_7 | GPIO_PIN_5;
 	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
 	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
@@ -547,29 +525,23 @@ static void MX_GPIO_Init(void)
 	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
 	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
 	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-
 }
 
-void GeneralTimer(void const * argument) {
-	while(1) {
-		osDelay(1);
-		time++;
-		if(time % 180 == 0) state_counter++;
-		if(time % 5 == 0) display_counter++;
-	}
-}
-
-void KeypadTimer(void const * argument) {
-	while(1) {
+void KeypadTimer(void const *argument)
+{
+	while (1)
+	{
 		osDelay(KEYPAD_PERIOD);
 		col++;
-		if (holding) hold_count++;
-		if (state == SLEEP) {
+		if (holding)
+			hold_count++;
+		if (state == SLEEP)
+		{
 			osSemaphoreWait(wakeupSem, osWaitForever);
 			wakeup++;
-			
-			if(wakeup >= 3 * SYSTICK_FREQUENCY / KEYPAD_PERIOD) {
-				timerHandle = osThreadCreate(osThread(timerTask), NULL);
+
+			if (wakeup >= 3 * SYSTICK_FREQUENCY / KEYPAD_PERIOD)
+			{
 				fsmHandle = osThreadCreate(osThread(fsmTask), NULL);
 				displayHandle = osThreadCreate(osThread(displayTask), NULL);
 				state = FIRST_KEY;
@@ -583,196 +555,238 @@ void KeypadTimer(void const * argument) {
 	}
 }
 
-void FSMController(void const * argument) {
+void FSMController(void const *argument)
+{
 	static uint64_t last_state = 0;
-	while(1) {
+	while (1)
+	{
 		button = -1;
-		if (state_counter != last_state) {
-			osSignalWait(keySig, osWaitForever);
-			keySig = 0;
-			last_state = state_counter;
-			osSemaphoreWait(keyboardSem, osWaitForever);
-			button = reading;
-			reading = -1;
-			osSemaphoreRelease(keyboardSem);
-			switch(state) {
-				case FIRST_KEY:
-					temp_voltage = 0.0;
-					if(button < 3 && button >= 0) {
-						temp_voltage = (float) button;
-						state = SECOND_KEY;
-						holding = 0;
-						hold_count = 0;
-					} else if(button == STAR) {
-						holding = 1;
-						if(hold_count > 3 * SYSTICK_FREQUENCY / KEYPAD_PERIOD) {
-							state = SLEEP;
-						} else if(hold_count > 1 * SYSTICK_FREQUENCY / KEYPAD_PERIOD) {
-							state = FIRST_KEY;
-							target_voltage = 0.0;
-						}
-					} else {
-						holding = 0;
-						hold_count = 0;
-					}
-					break;
-				case SECOND_KEY:
-					if(button == STAR) {
-						holding = 1;
-						if(hold_count > 3 * SYSTICK_FREQUENCY / KEYPAD_PERIOD) {
-							state = SLEEP;
-						} else if(hold_count > 1 * SYSTICK_FREQUENCY / KEYPAD_PERIOD) {
-							state = FIRST_KEY;
-							target_voltage = 0.0;
-						} else {
-							state = FIRST_KEY;
-						}
-					} else {
-						holding = 0;
-						hold_count = 0;
-						if(button < 10 && button >= 0) {
-							temp_voltage += (float) button / 10.0;
-							state = WAIT;
-						} else if(button == HASH) {
-							state = FIRST_KEY;
-							target_voltage = temp_voltage;
-						}
-					}
-					break;
-				case WAIT:
-					if(button == STAR) {
-						holding = 1;
-						if(hold_count > 3 * SYSTICK_FREQUENCY / KEYPAD_PERIOD) {
-							state = SLEEP;
-						} else if(hold_count > 1 * SYSTICK_FREQUENCY / KEYPAD_PERIOD) {
-							state = FIRST_KEY;
-							target_voltage = 0.0;
-						} else {
-							state = SECOND_KEY;
-							temp_voltage = (float)((int) temp_voltage);
-						}
-					} else if(button == HASH) {
-						state = FIRST_KEY;
-						target_voltage = temp_voltage;
-					}
-					break;
-				case SLEEP:
-					target_voltage = 0.0;
-					// Turning off timers, adc, and threads
-					HAL_TIM_Base_Stop(&htim2);
-					HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
-					HAL_ADC_Stop_IT(&hadc1);
-					osThreadTerminate(displayHandle);
-					osThreadTerminate(timerHandle);
-					return;
+		osSignalWait(keySig, osWaitForever);
+		keySig = 0;
+		osSemaphoreWait(keyboardSem, osWaitForever);
+		button = reading;
+		reading = -1;
+		osSemaphoreRelease(keyboardSem);
+		switch (state)
+		{
+		case FIRST_KEY:
+			temp_voltage = 0.0;
+			if (button < 3 && button >= 0)
+			{
+				temp_voltage = (float)button;
+				state = SECOND_KEY;
+				holding = 0;
+				hold_count = 0;
 			}
+			else if (button == STAR)
+			{
+				holding = 1;
+				if (hold_count > 3 * SYSTICK_FREQUENCY / KEYPAD_PERIOD)
+				{
+					state = SLEEP;
+				}
+				else if (hold_count > 1 * SYSTICK_FREQUENCY / KEYPAD_PERIOD)
+				{
+					state = FIRST_KEY;
+					target_voltage = 0.0;
+				}
+			}
+			else
+			{
+				holding = 0;
+				hold_count = 0;
+			}
+			break;
+		case SECOND_KEY:
+			if (button == STAR)
+			{
+				holding = 1;
+				if (hold_count > 3 * SYSTICK_FREQUENCY / KEYPAD_PERIOD)
+				{
+					state = SLEEP;
+				}
+				else if (hold_count > 1 * SYSTICK_FREQUENCY / KEYPAD_PERIOD)
+				{
+					state = FIRST_KEY;
+					target_voltage = 0.0;
+				}
+				else
+				{
+					state = FIRST_KEY;
+				}
+			}
+			else
+			{
+				holding = 0;
+				hold_count = 0;
+				if (button < 10 && button >= 0)
+				{
+					temp_voltage += (float)button / 10.0;
+					state = WAIT;
+				}
+				else if (button == HASH)
+				{
+					state = FIRST_KEY;
+					target_voltage = temp_voltage;
+				}
+			}
+			break;
+		case WAIT:
+			if (button == STAR)
+			{
+				holding = 1;
+				if (hold_count > 3 * SYSTICK_FREQUENCY / KEYPAD_PERIOD)
+				{
+					state = SLEEP;
+				}
+				else if (hold_count > 1 * SYSTICK_FREQUENCY / KEYPAD_PERIOD)
+				{
+					state = FIRST_KEY;
+					target_voltage = 0.0;
+				}
+				else
+				{
+					state = SECOND_KEY;
+					temp_voltage = (float)((int)temp_voltage);
+				}
+			}
+			else if (button == HASH)
+			{
+				state = FIRST_KEY;
+				target_voltage = temp_voltage;
+			}
+			break;
+		case SLEEP:
+			target_voltage = 0.0;
+			// Turning off timers, adc, and threads
+			HAL_TIM_Base_Stop(&htim2);
+			HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
+			HAL_ADC_Stop_IT(&hadc1);
+			osThreadTerminate(displayHandle);
+			return;
 		}
-		switch(state) {
-			case FIRST_KEY:
-				HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
-				break;
-			case SECOND_KEY:
-				HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
-				break;
-			case WAIT:
-				HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
-				break;
-			default:
-				HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_SET);
-				break;
-		}
+	}
+	switch (state)
+	{
+	case FIRST_KEY:
+		HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
+		break;
+	case SECOND_KEY:
+		HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
+		break;
+	case WAIT:
+		HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
+		break;
+	default:
+		HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_SET);
+		break;
 	}
 }
 
-void KeypadHandler(void const * argument) {
+void KeypadHandler(void const *argument)
+{
 	static int last_col = 0;
-	while(1) {
-		if(col != last_col) {
+	while (1)
+	{
+		if (col != last_col)
+		{
 			last_col = col;
 			cur_col = (cur_col + 1) % 3;
-			if(cur_col == 0) {
-				if(state == SLEEP && reading != HASH) {
+			if (cur_col == 0)
+			{
+				if (state == SLEEP && reading != HASH)
+				{
 					osSemaphoreWait(wakeupSem, osWaitForever);
 					wakeup = 0;
 					osSemaphoreRelease(wakeupSem);
-					HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
-				} else if(state == SLEEP){
-					reading = -1;
 					HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
-					HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_SET);
+					HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
 				}
-				else osSignalSet(fsmHandle, keySig);
+				else if (state == SLEEP)
+				{
+					reading = -1;
+					HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOD, LD5_Pin, GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOD, LD6_Pin, GPIO_PIN_RESET);
+				}
+				else
+					osSignalSet(fsmHandle, keySig);
 			}
-			//cur_col = 0;
-			switch(cur_col) {
-				case 0:
-					HAL_GPIO_WritePin(KEY_C1, GPIO_PIN_SET);
-					HAL_GPIO_WritePin(KEY_C2, GPIO_PIN_RESET);
-					HAL_GPIO_WritePin(KEY_C3, GPIO_PIN_RESET);
-					break;
-				case 1:
-					HAL_GPIO_WritePin(KEY_C1, GPIO_PIN_RESET);
-					HAL_GPIO_WritePin(KEY_C2, GPIO_PIN_SET);
-					HAL_GPIO_WritePin(KEY_C3, GPIO_PIN_RESET);
-					break;
-				case 2:
-					HAL_GPIO_WritePin(KEY_C1, GPIO_PIN_RESET);
-					HAL_GPIO_WritePin(KEY_C2, GPIO_PIN_RESET);
-					HAL_GPIO_WritePin(KEY_C3, GPIO_PIN_SET);
-					break;
-				default: 
-					break;
-			}
-		}
-		osSemaphoreWait(keyboardSem, osWaitForever);
-		if(GPIOB->IDR & GPIO_PIN_8) reading = keypad_matrix[cur_col][0];
-		else if(GPIOB->IDR & GPIO_PIN_7) reading = keypad_matrix[cur_col][1];
-		else if(GPIOB->IDR & GPIO_PIN_5) reading = keypad_matrix[cur_col][2];
-		else if (GPIOD->IDR & GPIO_PIN_7) reading = keypad_matrix[cur_col][3];
-		osSemaphoreRelease(keyboardSem);
-//		if(reading != -1 || cur_col == 2) {
-//			cur_col = 2;
-//			osSignalSet(fsmHandle, keySig);
-//		}
-	}
-}
-
-void DisplayRenderer(void const *argument) {
-	while(1) {
-		switch(state) {
-			case FIRST_KEY:
-				write_to_display(the_reading);
+			switch (cur_col)
+			{
+			case 0:
+				HAL_GPIO_WritePin(KEY_C1, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(KEY_C2, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(KEY_C3, GPIO_PIN_RESET);
 				break;
-			case SECOND_KEY:
-			case WAIT:
-				write_to_display(temp_voltage);
+			case 1:
+				HAL_GPIO_WritePin(KEY_C1, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(KEY_C2, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(KEY_C3, GPIO_PIN_RESET);
 				break;
-			case SLEEP:
-				shut_off_display();
+			case 2:
+				HAL_GPIO_WritePin(KEY_C1, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(KEY_C2, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(KEY_C3, GPIO_PIN_SET);
 				break;
 			default:
 				break;
+			}
+		}
+		osSemaphoreWait(keyboardSem, osWaitForever);
+		if (GPIOB->IDR & GPIO_PIN_8)
+			reading = keypad_matrix[cur_col][0];
+		else if (GPIOB->IDR & GPIO_PIN_7)
+			reading = keypad_matrix[cur_col][1];
+		else if (GPIOB->IDR & GPIO_PIN_5)
+			reading = keypad_matrix[cur_col][2];
+		else if (GPIOD->IDR & GPIO_PIN_7)
+			reading = keypad_matrix[cur_col][3];
+		osSemaphoreRelease(keyboardSem);
+	}
+}
+
+void DisplayRenderer(void const *argument)
+{
+	while (1)
+	{
+		switch (state)
+		{
+		case FIRST_KEY:
+			write_to_display(the_reading);
+			break;
+		case SECOND_KEY:
+		case WAIT:
+			write_to_display(temp_voltage);
+			break;
+		case SLEEP:
+			shut_off_display();
+			break;
+		default:
+			break;
 		}
 		osDelay(2);
 	}
 }
 
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 {
-  /* Prevent unused argument(s) compilation warning */
+	/* Prevent unused argument(s) compilation warning */
 	UNUSED(hadc);
 	adc_value = HAL_ADC_GetValue(&hadc1);
 	//float filtered_val;
@@ -787,14 +801,14 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
  * @param  None
  * @retval None
  */
-void _Error_Handler(char * file, int line)
+void _Error_Handler(char *file, int line)
 {
 	/* USER CODE BEGIN Error_Handler_Debug */
 	/* User can add his own implementation to report the HAL error return state */
 	while (1)
 	{
 	}
-	/* USER CODE END Error_Handler_Debug */ 
+	/* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef USE_FULL_ASSERT
@@ -806,23 +820,22 @@ void _Error_Handler(char * file, int line)
  * @param line: assert_param error line source number
  * @retval None
  */
-void assert_failed(uint8_t* file, uint32_t line)
+void assert_failed(uint8_t *file, uint32_t line)
 {
 	/* USER CODE BEGIN 6 */
 	/* User can add his own implementation to report the file name and line number,
 ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
 	/* USER CODE END 6 */
-
 }
 
 #endif
 
 /**
  * @}
- */ 
+ */
 
 /**
  * @}
- */ 
+ */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
