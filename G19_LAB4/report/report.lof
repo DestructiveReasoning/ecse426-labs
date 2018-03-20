@@ -1,13 +1,13 @@
 \contentsline {figure}{\numberline {1}{\ignorespaces Finite State Machine}}{5}{figure.0.1}
-\contentsline {figure}{\numberline {2}{\ignorespaces System architecture block diagram}}{8}{figure.0.2}
-\contentsline {figure}{\numberline {3}{\ignorespaces Filtered and Unfiltered Values VS Time (ms), Using Unmodified FIR Filter}}{11}{figure.0.3}
+\contentsline {figure}{\numberline {2}{\ignorespaces System Architecture Block Diagram}}{8}{figure.0.2}
+\contentsline {figure}{\numberline {3}{\ignorespaces Filtered and Unfiltered Values VS Time (ms), Using Average FIR Filter}}{11}{figure.0.3}
 \contentsline {figure}{\numberline {4}{\ignorespaces Filtered and Unfiltered Values VS Time (ms), Using High Coeffcients for Early Values}}{12}{figure.0.4}
-\addvspace {10\p@ }
 \contentsline {figure}{\numberline {5}{\ignorespaces Filtered and Unfiltered Values VS Time (ms), Using High Coeffcients for Late Values}}{13}{figure.0.5}
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {F.1}{\ignorespaces HAL's Visualization of the STM32F4's Pins Configuration}}{20}{figure.F.1}
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {F.1}{\ignorespaces HAL's Visualization of the STM32F4's Pins Configuration}}{21}{figure.F.1}
 \addvspace {10\p@ }

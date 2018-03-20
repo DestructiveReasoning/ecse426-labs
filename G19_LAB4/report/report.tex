@@ -58,15 +58,22 @@ conclusions they have made. By the end of the report, the reader shall understan
 available on the STM32F4 board can be used to activate peripherals and generate a pulse, and
 understand the implementation of multithreaded programs on embedded systems.
 \section{Problem Statement}
-The problem is for the developers to first implement a solution for generating a PWM pulse, whose voltage is set by an input on a keypad, that is then fed to a rectifier. Afterwards, the device shall feed the rectifier's output to an ADC to be converted to a digital signal, and have the signal's mean voltage be automatically displayed on an LED display. Furthermore, the program has to be implemented with the use of concurrently-running threads running on an RTOS. The problem can be divided into the following tasks:
+The problem is for the developers to first implement a solution for generating a PWM pulse whose
+duty cycle is controlled in order to maintain an approximately DC output voltage from a rectifier,
+where the  voltage set by an input on a keypad,  Afterwards, the device
+shall feed the rectifier's output to an ADC to be converted to a digital signal, and have the
+signal's mean voltage be automatically displayed on an LED display. Furthermore, the program has to
+be implemented with the use of concurrently-running threads running on an RTOS. The problem can be
+divided into the following tasks:
 \begin{itemize}
 	\item Setting up a timer to act as a PWM pulse generator;
 	\item Setting up a timer to activate the ADC to take an analog sample and convert it to digital;
 	\item Designing a rectifier circuit component that takes the PWM pulse as input and feeds the output to the ADC;
 	\item Testing and optimization of an FIR filter that reduces noise from the output signal of the ADC;
 	\item Setting up the alphanumeric keypad so that the user may input their desired voltage to be displayed on an LED display;
-	\item Mainting the 7-segment display;
-	\item Coding a controller function that automates the changes to be made on the PWM's duty cycle so that the previous or default voltage updates to the target voltage on the LED display;
+	\item Maintaining the 7-segment display;
+	\item Coding a controller function that automates the changes to be made on the PWM's duty cycle
+		so that the current voltage adjusts to the target voltage set by the user;
 	\item Coding a finite state machine function that enables the user to Enter and Delete digits for the target voltage, Reset the target voltage, and put the device to Sleep by using the keypad;
 	\item Implementing the program's features using CMSIS-RTOS and multithreading;
 	\item Reducing the power consumption of the device when it is in sleep mode using CMSIS-RTOS.
@@ -81,7 +88,18 @@ A rectifier is a component that converts alternating current (AC) to direct curr
 The idea of multithreading is to have multiple threads execute concurrently. This allows for parallelism, more effecient use of a processor, and faster execution time. This is similar to the notion of concurrently-running processes, however, threads are not processes. One can have multiple threads running in one process, thus allowing for less overhead because the threads all share the same data [2]. Since, the threads may be sharing resources, this requires some kind of mutual exclusion to prevent threads from falling into deadlock or race-condition situations. The solution is semaphores. Semaphores allow one program to use a shared resource without having other programs use the resource at the same time. This is done by having a program wait until a semaphore is available to use before it can have access to the shared resource and execute its code. First a program waits for a semaphore, and once it is available, holds the semaphore by decrementing the semaphore's count, and executing its code. If the semaphore has a value of 0, no other program that is waiting for the same semaphore can execute. When the program using the shared resource no longer has need for the resource, it releases the semaphore by incrementing the semaphore's count, thus allowing other programs that are waiting to execute, to use the resource [2]. This resolves the problem of deadlocks and race-conditions.
 
 \subsection{Hypothesis}
-The programmers should be able to implement a solution for experiment 3 given the time allocated for the project. The challenges one expects to face are learning how to use the keypad and implementing a solution with it, testing of the resistor and capacitor components for the rectifier, and implementing a solution for the different features available on the keypad with the use of a finite state machine. The programmers should be able to implement a solution for experiment 4 given the time allocated for the project, since the majority of the device and code is the same from experiment 3 and the students should have had experience with multithreading and semaphores.
+The programmers should be able to implement a solution for experiment 3 given the time allocated for
+the project. The challenges one expects to face are learning how to use the keypad and implementing
+a solution with it, testing of the resistor and capacitor components for the rectifier, and
+implementing a solution for the different features available on the keypad with the use of a finite
+state machine. Furthermore, it is expected that a simple $p$-type controller design will be
+sufficient for adjusting the rectifier output voltage quickly. The programmers should be able to
+implement a solution for experiment 4 given the time allocated for the project, since the majority
+of the device and code is the same from experiment 3 and the students should have had experience
+with multithreading and semaphores. Due to the independence of various components of the system, it
+is expected for the code from experiment 3 to be easily divisible into several concurrent threads,
+which would increase the efficiency of the system and readability of the code without any
+non-negligible performance sacrifice.
 
 \section{Implementation}
 
@@ -89,7 +107,11 @@ The programmers should be able to implement a solution for experiment 3 given th
 The developers were tasked with designing a system that generates PWM pulses and feeds the voltage
 to a rectifier circuit. Under the \hyperref[appendixtim2]{TIM3 configuration settings}, a timer, one
 can see that it is configured to generate a pulse at a frequency of 500kHz, by inheriting the APB
-clock of 84MHz and having a period of 168, hence having 84MHz divided by 168, yielding 500kHz. The students have chosen to use this frequency after having tested lower frequencies, and came to the conclusion that in order for the duty cycle to control the output voltage, the frequency had to be elevated to at least this amount of frequency. After \hyperref[testpwm]{testing and observing}, the students noticed that a frequency of 1 MHz was suitable enough to have the duty cycle control the output voltage. The STM32F4's TIM3 hardware timer is configured to generate and output a PWM pulse channel that is assigned to a GPIO pin on the board, which can be viewed in the \hyperref[pinconfig]{GPIO pin configuration table} generated by STMCubeMX. By using a circuit wire, the programmers can feed the output of the PWM pulse channel to a circuit component on a bread board, more specifically, the rectifier.\\
+clock of 84MHz and having a period of 168, hence having 84MHz divided by 168, yielding 500kHz. The
+students have chosen to use this frequency after having tested lower frequencies, and came to the
+conclusion that in order for the duty cycle to control the output voltage, the frequency had to be
+elevated to at least this amount of frequency. After \hyperref[testpwm]{testing and observing}, the
+students noticed that a frequency of 500kHz was suitable enough to have the duty cycle control the output voltage. The STM32F4's TIM3 hardware timer is configured to generate and output a PWM pulse channel that is assigned to a GPIO pin on the board, which can be viewed in the \hyperref[pinconfig]{GPIO pin configuration table} generated by STMCubeMX. By using a circuit wire, the programmers can feed the output of the PWM pulse channel to a circuit component on a bread board, more specifically, the rectifier.\\
 The rectifier circuit holds the charge in the capacitor while a load resistance discharges the capacitor, enabling the user to influence the duty cycle to control the output voltage level. The required range for the output voltage is between 0.5V and 2.8V, hence it is required to test different configurations for the resistor and capactitor to deliver a range of output voltages that meet the requirement. The students have chosen a capacitor of 5uF and a resistor of 390 Ohms. This configuration was chosen because it achieved an output voltage range of 0.4V to roughly 2.1V. The programmers were able to observe this phenomenon after \hyperref[testpwm]{testing} multiple different configurations and came to the conclusion that the resistor and capacitor values chosen were suitable for the task.
 
 \subsection{ADC and Timers}
@@ -161,7 +183,7 @@ A finite state machine was implemented to control the functionality of the syste
 state the system is in. The state is changed by inputs to the keypad from the user.\\\\
 \begin{figure}[h]
 	\begin{center}
-		\caption{Finite State Machine}
+		\caption{Finite State Machine}\label{fig1}
 		\begin{tikzpicture}[->,>=stealth',shorten >=1pt, auto, node distance=3.8cm, semithick]
 			\tikzstyle{every state}=[fill=blue!50, draw]
 			\node[initial, state, fill=yellow!30] (FIRST) {First Key};
@@ -186,16 +208,16 @@ state the system is in. The state is changed by inputs to the keypad from the us
 		\textit{Gray states: display is off}
 	\end{center}
 \end{figure}
-Figure 1 shows the semantics of the state transitions, which was kept exactly the same between labs
+\hyperref[fig1]{Figure 1} shows the semantics of the state transitions, which was kept exactly the same between labs
 3 and 4. The arrows with labels that have inequalities are triggered when the symbol before the
 inequality is held for a duration that satisfies the inequality. For example, the arrow from
 ``Sleep'' to ``First Key'' with the label ``\# $>3$s'' should be interpreted as ``when in the Sleep
 state, if the \# key is held for more than 3 seconds, transition to the First Key state''.\\\\
 Although the FSM shown shows how the states are changed, details about the output of the system are
 omitted in the diagram to avoid over-cluttering it. The details about how the output of the system
-changes are listed in Table 1.
+changes are listed in \hyperref[table1]{Table 1}.
 \begin{table}[h]
-	\caption{Effect of input gestures on output}
+	\caption{Effect of input gestures on output}\label{table1}
 	\begin{center}
 		\begin{tabular}{|c|c|c|p{50mm}|}
 			\hline
@@ -298,10 +320,10 @@ stability. During the testing phase, it was found that the system converged to t
 voltage reading in approximately $40$ms on average.
 
 \subsection{Multithreading and System Architecture}
-Figure 2 shows the overall architecture of the system, including the organization of the threads in
+\hyperref[fig2]{Figure 2} shows the overall architecture of the system, including the organization of the threads in
 Lab 4.\\\\
 \begin{figure}[h]
-	\caption{System architecture block diagram}
+	\caption{System Architecture Block Diagram}\label{fig2}
 	\begin{center}
 		\begin{tikzpicture}[->,>=stealth',shorten >=1pt, auto, node distance=4.8cm, semithick,
 			scale=0.8, transform shape]
@@ -390,78 +412,97 @@ timers are started once again.
 
 \subsection{PWM and Rectifier}\label{testpwm}
 
-The students tested multiple configurations of resistor and capacitor values for the rectifier circuit. Here were their findings:\\
+The students tested multiple configurations of resistor and capacitor values for the rectifier
+circuit in order to determine which parameters allowed the largest range in DC output voltage.
+Resistances in the range of $390\Omega-4.7k\Omega$ and capacitances in the range of $5\mu F-20\mu F$
+were tested. These ranges were chosen since the time constants generated by those parameters satisfy
+$(RC)^{-1}<<f$, where $f$ is the PWM frequency. The time constant is a measure that is related to
+how long the circuit takes to charge and discharge. It was desired for this length to be far greater
+than the PWM frequency so that the circuit would not have enough time to charge and discharge by
+vast amounts, thereby keeping its output voltage fairly constant.\\\\
 
-\textbf{Duty Cycle VS Output Mean Voltage}\\
-	Resistor: 4.7K Ohms, Capacitor: 20 uF\\
-	\begin{tabular}{|c|c|}
-		\hline
-		Duty Cycle & Output Mean Voltage (V)\\\hline
-		0.05 & 1.620\\\hline
-		0.95 & 2.150\\\hline
-	\end{tabular}
-	\newline
-	\\
-\textbf{Duty Cycle VS Output Mean Voltage}\\
-	Resistor: 4.7K Ohms, Capacitor: 5 uF\\
-	\begin{tabular}{|c|c|}
-		\hline
-		Duty Cycle & Output Mean Voltage (V)\\\hline
-		0.05 & 1.600\\\hline
-		0.95 & 2.140\\\hline
-	\end{tabular}
-	\newline
-	\\
-\textbf{Duty Cycle VS Output Mean Voltage}\\
-	Resistor: 390 Ohms, Capacitor: 20 uF\\
-	\begin{tabular}{|c|c|}
-		\hline
-		Duty Cycle & Output Mean Voltage (V)\\\hline
-		0.05 & 0.364	\\\hline
-		0.95 & 1.920\\\hline
-		1.00 & 1.920\\\hline
-	\end{tabular}
-	\newline
-	\\
-\textbf{Duty Cycle VS Output Mean Voltage}\\
-	Resistor: 390 Ohms, Capacitor: 5 uF\\
-	\begin{tabular}{|c|c|}
-		\hline
-		Duty Cycle & Output Mean Voltage (V)\\\hline
-		0.05 & 0.401	\\\hline
-		0.95 & 1.930\\\hline
-		1.00 & 2.105\\\hline
-	\end{tabular}
-	\newline
-	\\
-One can see that having a small resistor (390 Ohms) and low capacitor (5uF) allow the output voltage to yield a range roughly between 0.4V and 2.1V, making it the best suitor for the requirement of delivering a wide range of output voltages. Since the resistor used is small, adding a resistor in parallel as the load resistor won't affect the circuit unless it is as small as the 390 Ohm resistor.
-
+\begin{table}[h]
+	\caption{Effect of rectifier parameters on its output voltage}\label{table2}
+	\begin{center}
+		\begin{tabular}{|c|c|c|c|}
+			\hline
+			Resistance (k$\Omega$) & Capacitance($\mu$F) & Duty Cycle (\%) & Output Mean Voltage (V)\\\hline
+			4700 & 20 & 0.05 & 1.620\\\hline
+			4700 & 20 & 0.95 & 2.150\\\hline
+			4700 & 5 & 0.05 & 1.600\\\hline
+			4700 & 5 & 0.95 & 2.140\\\hline
+			390 & 20 & 0.05 & 0.364	\\\hline
+			390 & 20 & 0.95 & 1.920\\\hline
+			390 & 20 & 1.00 & 1.920\\\hline
+			390 & 5 & 0.05 & 0.401	\\\hline
+			390 & 5 & 0.95 & 1.930\\\hline
+			390 & 5 & 1.00 & 2.105\\\hline
+		\end{tabular}
+	\end{center}
+\end{table}
+One can see from the results shown in \hyperref[table2]{Table 2} that having a small resistor (390
+Ohms) and low capacitor (5uF) allow the output voltage
+to yield a range roughly between 0.4V and 2.1V, making it the best suitor for the requirement of
+delivering a wide range of output voltages. This configuration also has another important advantage.
+Say a load resistance $\tilde{R}$ is added to the circuit. In this case, the equivalent resistance
+connected across the capacitor of the rectifier circuit is
+\begin{equation}
+	R||\tilde{R}\equiv\frac{R\tilde{R}}{R+\tilde{R}}\leq\min(R,\tilde{R})
+\end{equation}
+where $R$ is the resistor used in the rectifier circuit.
+Say we wish that this equivalent resistance is greater than $\alpha R$ (where $\alpha<1$), that is to say, adding the
+load resistance doesn't affect the resistance of the circuit by more than some constant threshold. Then,
+\begin{equation}
+	\frac{R||\tilde{R}}{R} =
+	\frac{\tilde{R}}{R+\tilde{R}}\geq\alpha\rightarrow\left(\frac{1-\alpha}{\alpha}\right)\tilde{R}\geq R
+\end{equation}
+Equation (3) shows that as $R$ grows, the smallest $\tilde{R}$ that can be loaded to the circuit
+before changing the equivalent resistance by the $\alpha$ threshold grows linearly. Therefore, by
+choosing a small $R$, the range of load resistances that have little effect on the equivalent
+circuit is greater! This means that for a larger set of load resistances, the loading on the circuit
+will have very little effect on the circuit itself, so it can be expected that the rectifier
+circuit's behavior will not vary greatly by the load resistance. Therefore, a small $R$ for the
+rectifier was a good choice for two main reasons: it provided a good range of output voltages, and
+it is less sensitive to loading effects than a larger resistance.
 \subsection{Filtering}\label{testfiltering}
-One can draw comparisons from the following graphs generated by a run-time variables monitoring and visualization tool, STM Studio [source]:\\
+One can draw comparisons from the following graphs generated by a run-time variables monitoring and
+visualization tool, STM Studio[1]:\\
 \begin{figure}[h] % TODO: i want my graph between the two blocks of text
-	\label{Linear Graph of the Filtered and Unfiltered Values Plotted Against Time}
+	\caption{Filtered and Unfiltered Values VS Time (ms), Using Average FIR Filter}\label{fig3}
 	\begin{center}
 		\includegraphics[scale=0.5]{./figures/adc_5coeffs.PNG}
-		\caption{Filtered and Unfiltered Values VS Time (ms), Using Unmodified FIR Filter}
 	\end{center}
 \end{figure}
-\\For the graph above, the configuration for the filter's coefficients is [0.2, 0.2, 0.2, 0.2, 0.2]. In regular blue are the unfiltered values, and in light blue are the filtered values. This graph demonstrates the values read at runtime of the unfilted and filtered values that passed through the unmodified FIR filter. One can observe that there is a considerable amount of noise left from filtering.
+\\In \hyperref[fig3]{Figure 3}, the configuration for the filter's coefficients is [0.2, 0.2, 0.2, 0.2, 0.2].
+In regular blue are the unfiltered values, and in light blue are the filtered values. This graph
+demonstrates the values read at runtime of the unfilted and filtered values that passed through the
+unmodified FIR filter. One can observe that there is a considerable amount of noise left from
+filtering.
 \begin{figure}[h] % TODO:  i want my graph between the two blocks of text
-	\label{Linear Graph of the Filtered and Unfiltered Values Plotted Against Time}
+	\caption{Filtered and Unfiltered Values VS Time (ms), Using High Coeffcients for Early
+	Values}\label{fig4}
 	\begin{center}
 		\includegraphics[scale=0.5]{./figures/adc_10coeffs_early_high_values.PNG}
-		\caption{Filtered and Unfiltered Values VS Time (ms), Using High Coeffcients for Early Values}
 	\end{center}
 \end{figure}
-\\For the graph above, the configuration for the filter's coefficients is [0.05, 0.05, 0.05, 0.05, 0.05, 0.15, 0.15, 0.15, 0.15, 0.15]. This filter considers the five earliest values to each have a significance of 0.15 and the five later values to each have a significance of 0.05. One can observe by the graph that this filter is a considerable improvement to the unmodified version. Although, the programmers believe that it could be optimized further.
-\begin{figure}[h] % TODO:  i want my graph between the two blocks of text
-	\label{Linear Graph of the Filtered and Unfiltered Values Plotted Against Time}
+\\In \hyperref[fig4]{Figure 4}, the configuration for the filter's coefficients is [0.05, 0.05, 0.05, 0.05,
+0.05, 0.15, 0.15, 0.15, 0.15, 0.15]. This filter considers the five earliest values to each have a
+significance of 0.15 and the five later values to each have a significance of 0.05. One can observe
+by the graph that this filter is a considerable improvement to the unmodified version. Although, the
+programmers believe that it could be optimized further.\\\\
+\begin{figure}[h]% TODO:  i want my graph between the two blocks of text
+	\caption{Filtered and Unfiltered Values VS Time (ms), Using High Coeffcients for Late
+	Values}\label{fig5}
 	\begin{center}
 		\includegraphics[scale=0.5]{./figures/adc_10coeffs_late_high_values.PNG}
-		\caption{Filtered and Unfiltered Values VS Time (ms), Using High Coeffcients for Late Values}
 	\end{center}
 \end{figure}
-\\For the graph above, the configuration for the filter's coefficients is [0.15, 0.15, 0.15, 0.15, 0.15, 0.05, 0.05, 0.05, 0.05, 0.05]. This filter considers the five later values to each have a significance of 0.15 and the five early values to each have a significance of 0.05. One can observe by the graph that this filter is an improvement to the previous version. The programmers believe that this version of the filter should perform well enough given the scope of the problem.
+Finally, in \hyperref[fig5]{Figure 5}, the configuration for the filter's coefficients is [0.15,
+	0.15, 0.15, 0.15,
+0.15, 0.05, 0.05, 0.05, 0.05, 0.05]. This filter considers the five later values to each have a
+significance of 0.15 and the five early values to each have a significance of 0.05. One can observe
+by the graph that this filter is an improvement to the previous version. The programmers believe
+that this version of the filter should perform well enough given the scope of the problem.
 
 \section{Conclusion}
 It can be concluded that the STM32 board along with a simple rectifier circuit are capable of
