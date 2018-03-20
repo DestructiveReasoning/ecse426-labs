@@ -7,7 +7,9 @@
 \usepackage{color}
 \usepackage{tikz}
 \usepackage{circuitikz}
-\usetikzlibrary{shapes,arrows}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usetikzlibrary{shapes,arrows, automata}
 \usepackage[margin=2cm]{geometry}
 
 \title{ECSE 426 - Microprocessor Systems\\Lab Report 2: Timers, Interrupts, Multithreaded, Interrupt-Driven Readings and Peripheral Control}
@@ -89,10 +91,76 @@ The devices uses a modified FIR filter from experiment 2 in order to reduce the 
 In this way, the 5 earliest samples hav have a significance of 0.05 and the 5 later samples have a significance of 0.15 when calculating the average of the 10 samples. The programmers drew this conclusion by trial and error and the empirical evidence proved that the above modifications to the FIR filter significantly reduced the signal's noise. The programmers have tested mutliple configurations, in which this report shall demonstrate three of the tested configurations. The graphs the programmers have used to determine the optimized filter can be seen in the  \hyperref[testfiltering]{Testing and Observations: Filtering}, section. After testing multile configurations, the three that are graphed in the testing section further prove that the programmers have chosen an accurate filter with coefficients: [0.15, 0.15, 0.15, 0.15, 0.15, 0.05, 0.05, 0.05, 0.05, 0.05].
 
 \subsection{Alphanumeric Keypad}
-
+In order to allow a user to either control the output voltage of the rectifier circuit or put the
+system to sleep, it was required to integrate a keypad peripheral. The keypad has buttons arranged
+in a $4\times 3$ matrix which is interpreted via the 7 pins that the keypad offers. In order to read
+a given column of the keypad, one may set the keypad's corresponding column pin \texttt{HIGH} and
+subsequently read all four row pins. The reading of the four row pins and the column pins are passed
+through a lookup table (implemented in software) which returns the corresponding key that was
+pressed (assuming only one key is pressed at any given time).\\\\
+The overall strategy for processing keyboard input is as follows:
+\begin{enumerate}
+	\item Set the pin corresponding to the first keypad column HIGH.
+	\item Poll the row pins for a short period (on the order of $100$ms).
+	\item If the row pins indicate that a button was pressed, search lookup table for the
+		appropriate button reading and latch it in a \texttt{reading} variable
+	\item Repeat steps 2 and 3 for each of the remaining column pins.
+	\item Once all column pins have been read, alert other tasks of the \texttt{reading} variable
+		(via a signal in the context of an RTOS, for example) and reset \texttt{reading = -1}.
+		Note that it is important to alert other tasks when no button has been pressed as well
+		(indicated by \texttt{reading = -1}) in order to distinguish between a user pressing a
+		button and a user holding a button.
+	\item Repeat
+\end{enumerate}
+The above procedure assumes the keypad controller is operating concurrently with the rest of the
+system, which was true in the case of Lab 4 which made use of an RTOS. However, during lab 3, this
+was not at all the case. Since no signals could be sent, the finite state machine would wait for the
+whole keyboard to be scanned before computing its next state. Clearly, this is rather inefficient as
+the finite state machine would, first of all, have to wait approximately 300ms before each state
+transition. Secondly, since most of the time the user is not pressing a button, the finite state
+machine would end up polling for button presses needlessly for the majority of the CPU time. With
+the threading and signal implements in FreeRTOS, this efficiency was increased greatly. In the
+implementation of Lab 4, as discussed below.
+%With this architecture, the keyboard may be read as follows, in algorithm 1.
+%\begin{algorithm}
+%	\caption{Reading the keypad}
+%	\begin{algorithmic}[1]
+%		\Function{ReadKeypad}{}
+%			\State{$i\leftarrow 0$}
+%			\While{$i < 3$}
+%				\State{Wait for signal from keypad timer}\Comment{Read each column for a few ms}
+%				\State{Set all column pins LOW}
+%				\State{Set $i$th column pin HIGH}
+%				\State{$\mathbf{x}\leftarrow$ row pin readings}
+%				\State{$r\leftarrow\texttt{LUT}(\mathbf{x},i)$}
+%			\EndWhile
+%		\EndFunction
+%	\end{algorithmic}
+%\end{algorithm}
 
 \subsection{Finite State Machine}
-
+A finite state machine was implemented to control the functionality of the system according to the
+state the system is in. The state is changed by inputs to the keypad from the user.
+\begin{figure}[h]
+	\begin{center}
+		\caption{Finite State Machine}
+		\begin{tikzpicture}[->,>=stealth',shorten >=1pt, auto, node distance=3.8cm, semithick]
+			\tikzstyle{every state}=[fill=blue!50, draw]
+			\node[initial, state] (FIRST) {First Key};
+			\node[state] (SECOND) [right of=FIRST] {Second Key};
+			\node[state] (WAIT) [above of=SECOND] {Wait};
+			\node[state] (SLEEP) [below of=FIRST] {Sleep};
+			\path (FIRST) edge node {$\{0,1,2\}$} (SECOND);
+			\path (SECOND) edge node {$\{0,1,\dots 9\}$} (WAIT);
+			\path (WAIT) edge [bend right] node [above] {\textbf{\#}} (FIRST);
+			\path (SECOND) edge [bend left] node {*} (FIRST);
+			\path (WAIT) edge [bend left] node {*} (SECOND);
+			\path (FIRST) edge [loop above] node {* $\leq 3$s} (FIRST);
+			\path (FIRST) edge node {* $>3$s} (SLEEP);
+			\path (SLEEP) edge [bend left] node {\# $>3$s} (FIRST);
+		\end{tikzpicture}
+	\end{center}
+\end{figure}
 
 \subsection{Controller}
 
